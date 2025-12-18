@@ -2,26 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Sparkles, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { authService } from "@/lib/auth/auth-service";
 import {
   GoogleIcon,
   LinkedInIcon,
   FacebookIcon,
 } from "@/components/ui/social-icons";
-import { authService } from "@/lib/auth/auth-service";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -30,143 +21,203 @@ export default function LoginPage() {
   async function onEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
+
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      alert("Login simulation successful!");
-    }, 2000);
-    // await authService.loginWithEmail(email);
+      // For test user or demo purposes, allow login
+      if (email === "test@gmail.com" && password === "123") {
+        router.push("/dashboard");
+      } else {
+        // Allow any login for now as requested "login easily",
+        // but prioritizing the specific test case they mentioned.
+        router.push("/dashboard");
+      }
+    }, 1500);
   }
 
   const handleSocialLogin = (provider: "google" | "linkedin" | "facebook") => {
     setIsLoading(true);
     authService.loginWithSocial(provider);
-    setTimeout(() => setIsLoading(false), 2000); // clear loading for demo
+    setTimeout(() => setIsLoading(false), 2000);
   };
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-xl dark:bg-gray-950/50">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">
-            Welcome back
-          </CardTitle>
-          <CardDescription className="text-center">
-            Sign in to manage your cross-platform content
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onEmailSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  placeholder="name@company.com"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-9 bg-gray-50/50"
-                  required
-                />
+    <>
+      <div className="lg:hidden flex justify-center mb-6">
+        <div className="flex items-center gap-2">
+          <div className="size-8 flex items-center justify-center rounded bg-primary/20 text-primary">
+            <Sparkles className="h-5 w-5 fill-current" />
+          </div>
+          <h2 className="text-black dark:text-white text-xl font-bold">
+            PostFlow AI
+          </h2>
+        </div>
+      </div>
+
+      <div className="w-full">
+        <div className="flex border-b border-gray-200 dark:border-border-dark">
+          <Link
+            href="/login"
+            className="flex-1 pb-4 text-center text-sm font-semibold border-b-2 border-primary text-black dark:text-white transition-colors"
+          >
+            Log In
+          </Link>
+          <Link
+            href="/signup"
+            className="flex-1 pb-4 text-center text-sm font-semibold border-b-2 border-transparent text-gray-500 dark:text-text-secondary hover:text-black dark:hover:text-white transition-colors"
+          >
+            Sign Up
+          </Link>
+        </div>
+      </div>
+
+      <div className="text-center lg:text-left">
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+          Welcome back
+        </h2>
+        <p className="mt-2 text-sm text-gray-600 dark:text-text-secondary">
+          Enter your credentials to access your dashboard.
+        </p>
+      </div>
+
+      <form onSubmit={onEmailSubmit} className="mt-8 space-y-6">
+        <div className="space-y-5">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+            >
+              Email address
+            </label>
+            <div className="mt-2 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
+                <Mail className="h-5 w-5" />
               </div>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
+              />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 bg-gray-50/50"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+              >
+                Password
+              </label>
+              <div className="text-sm">
+                <a
+                  href="#"
+                  className="font-medium text-primary hover:text-blue-500"
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
+                  Forgot password?
+                </a>
               </div>
             </div>
-            <Button
-              className="w-full bg-indigo-600 hover:bg-indigo-700 shadow-md"
-              type="submit"
-              disabled={isLoading}
-            >
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In with Email
-            </Button>
-          </form>
-
-          <div className="relative mt-6 mb-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white/80 px-2 text-muted-foreground">
-                Or continue with
-              </span>
+            <div className="mt-2 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
+                <Lock className="h-5 w-5" />
+              </div>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                autoComplete="current-password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="block w-full rounded-lg border-0 py-3 pl-10 pr-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-text-secondary hover:text-gray-600 dark:hover:text-white cursor-pointer"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin("google")}
-              disabled={isLoading}
-              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
-            >
-              <GoogleIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
-              <span className="text-xs text-gray-600 group-hover:text-gray-900">
-                Google
-              </span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin("linkedin")}
-              disabled={isLoading}
-              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
-            >
-              <LinkedInIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
-              <span className="text-xs text-gray-600 group-hover:text-gray-900">
-                LinkedIn
-              </span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin("facebook")}
-              disabled={isLoading}
-              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
-            >
-              <FacebookIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
-              <span className="text-xs text-gray-600 group-hover:text-gray-900">
-                Facebook
-              </span>
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-indigo-600 hover:underline font-medium"
-            >
-              Sign up
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
-    </div>
+        <div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex w-full justify-center rounded-lg bg-primary px-3 py-3.5 text-sm font-bold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors disabled:opacity-50"
+          >
+            {isLoading ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              "Log in"
+            )}
+          </button>
+        </div>
+      </form>
+
+      <div className="relative">
+        <div aria-hidden="true" className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200 dark:border-border-dark"></div>
+        </div>
+        <div className="relative flex justify-center text-sm font-medium leading-6">
+          <span className="bg-white dark:bg-background-dark px-4 text-gray-500 dark:text-text-secondary">
+            Or continue with
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <button
+          onClick={() => handleSocialLogin("google")}
+          className="flex w-full items-center justify-center rounded-lg bg-white dark:bg-surface-dark px-3 py-2.5 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          <GoogleIcon className="h-5 w-5" />
+          <span className="sr-only">Google</span>
+        </button>
+        <button
+          onClick={() => handleSocialLogin("linkedin")}
+          className="flex w-full items-center justify-center rounded-lg bg-white dark:bg-surface-dark px-3 py-2.5 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          <LinkedInIcon className="h-5 w-5" />
+          <span className="sr-only">LinkedIn</span>
+        </button>
+        <button
+          onClick={() => handleSocialLogin("facebook")}
+          className="flex w-full items-center justify-center rounded-lg bg-white dark:bg-surface-dark px-3 py-2.5 text-sm font-semibold text-gray-900 dark:text-white shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-border-dark hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+        >
+          <FacebookIcon className="h-5 w-5" />
+          <span className="sr-only">Facebook</span>
+        </button>
+      </div>
+
+      <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+        <p>
+          By continuing, you agree to our{" "}
+          <a href="#" className="font-medium text-primary hover:text-blue-500">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="#" className="font-medium text-primary hover:text-blue-500">
+            Privacy Policy
+          </a>
+          .
+        </p>
+      </div>
+    </>
   );
 }

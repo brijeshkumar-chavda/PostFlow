@@ -23,9 +23,17 @@ module.exports = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#0a66c2",
           foreground: "hsl(var(--primary-foreground))",
         },
+        "primary-hover": "#004182",
+        "background-light": "#f3f6f8",
+        "background-dark": "#0f172a",
+        "surface-dark": "#1e293b",
+        "border-dark": "#334155",
+        "text-secondary": "#94a3b8",
+        "border-blue": "#334155",
+        "surface-darker": "#131722",
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
@@ -69,6 +77,9 @@ module.exports = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      fontFamily: {
+        display: ["Inter", "sans-serif"],
       },
     },
   },
