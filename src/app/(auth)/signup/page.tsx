@@ -19,13 +19,22 @@ import {
   User,
   ArrowRight,
   Loader2,
-  Linkedin,
-  Facebook,
-  Chrome,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import {
+  GoogleIcon,
+  LinkedInIcon,
+  FacebookIcon,
+} from "@/components/ui/social-icons";
 import { authService } from "@/lib/auth/auth-service";
 
 export default function SignupPage() {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   async function onEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -57,17 +66,36 @@ export default function SignupPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={onEmailSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="name"
-                  placeholder="John Doe"
-                  type="text"
-                  className="pl-9 bg-gray-50/50"
-                  required
-                />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="firstName"
+                    placeholder="John"
+                    type="text"
+                    className="pl-9 bg-gray-50/50"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="lastName"
+                    placeholder="Doe"
+                    type="text"
+                    className="pl-9 bg-gray-50/50"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                  />
+                </div>
               </div>
             </div>
             <div className="space-y-2">
@@ -79,6 +107,8 @@ export default function SignupPage() {
                   placeholder="name@company.com"
                   type="email"
                   className="pl-9 bg-gray-50/50"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -86,13 +116,27 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
-                  type="password"
-                  className="pl-9 bg-gray-50/50"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className="pl-10 pr-10 bg-gray-50/50"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </button>
               </div>
             </div>
             <Button
@@ -122,28 +166,34 @@ export default function SignupPage() {
               variant="outline"
               onClick={() => handleSocialSignup("google")}
               disabled={isLoading}
-              className="flex flex-col h-auto py-3 gap-1 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200"
+              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
             >
-              <Chrome className="h-5 w-5" />
-              <span className="text-xs">Google</span>
+              <GoogleIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
+              <span className="text-xs text-gray-600 group-hover:text-gray-900">
+                Google
+              </span>
             </Button>
             <Button
               variant="outline"
               onClick={() => handleSocialSignup("linkedin")}
               disabled={isLoading}
-              className="flex flex-col h-auto py-3 gap-1 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
+              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
             >
-              <Linkedin className="h-5 w-5" />
-              <span className="text-xs">LinkedIn</span>
+              <LinkedInIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
+              <span className="text-xs text-gray-600 group-hover:text-gray-900">
+                LinkedIn
+              </span>
             </Button>
             <Button
               variant="outline"
               onClick={() => handleSocialSignup("facebook")}
               disabled={isLoading}
-              className="flex flex-col h-auto py-3 gap-1 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-200"
+              className="group flex flex-col h-auto py-3 gap-1 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300"
             >
-              <Facebook className="h-5 w-5" />
-              <span className="text-xs">Facebook</span>
+              <FacebookIcon className="h-5 w-5 transition-all duration-300 grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100" />
+              <span className="text-xs text-gray-600 group-hover:text-gray-900">
+                Facebook
+              </span>
             </Button>
           </div>
         </CardContent>

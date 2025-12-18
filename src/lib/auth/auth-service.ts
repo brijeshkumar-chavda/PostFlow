@@ -4,8 +4,10 @@ import { createClient } from "@supabase/supabase-js";
 
 // NOTE: We will replace these with env variables later.
 // For now, the client is initialized without keys to prevent errors.
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -14,6 +16,7 @@ export interface AuthProvider {
   loginWithSocial: (
     provider: "google" | "linkedin" | "facebook"
   ) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const authService: AuthProvider = {
@@ -26,5 +29,9 @@ export const authService: AuthProvider = {
     // Adapter pattern: Call Supabase OAuth
     console.log(`[AuthService] Logging in with provider: ${provider}`);
     // await supabase.auth.signInWithOAuth({ provider });
+  },
+  logout: async () => {
+    console.log("[AuthService] Logging out");
+    await supabase.auth.signOut();
   },
 };
