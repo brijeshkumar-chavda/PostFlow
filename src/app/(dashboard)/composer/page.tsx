@@ -27,13 +27,71 @@ import {
   Repeat,
   Send,
   Zap,
+  List,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import Placeholder from "@tiptap/extension-placeholder";
+import dynamic from "next/dynamic";
+import { EmojiStyle } from "emoji-picker-react";
+
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
 export default function ComposerPage() {
   const [platform, setPlatform] = useState("all");
   const [previewDevice, setPreviewDevice] = useState("desktop");
+  const [content, setContent] = useState("");
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Underline,
+      Placeholder.configure({
+        placeholder:
+          "What do you want to share with your network today? Type '/' for AI commands...",
+      }),
+    ],
+    content: "",
+    immediatelyRender: false,
+    onUpdate: ({ editor }) => {
+      // For preview, we use HTML to reflect formatting
+      setContent(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class:
+          "prose dark:prose-invert focus:outline-none max-w-none min-h-[180px] p-4 text-base leading-relaxed text-slate-900 dark:text-white",
+      },
+    },
+  });
+
+  const handleBold = () => editor?.chain().focus().toggleBold().run();
+  const handleItalic = () => editor?.chain().focus().toggleItalic().run();
+  const handleList = () => editor?.chain().focus().toggleBulletList().run();
+  const handleEmoji = () => setShowEmojiPicker(!showEmojiPicker);
+
+  const onEmojiClick = (emojiData: any) => {
+    editor?.chain().focus().insertContent(emojiData.emoji).run();
+    setShowEmojiPicker(false);
+  };
 
   return (
     <div className="flex h-full flex-col font-display overflow-hidden bg-background-light dark:bg-background-dark">
@@ -115,26 +173,67 @@ export default function ComposerPage() {
                   </button>
                 </div>
               </div>
-              <div className="relative group">
-                <textarea
-                  className="w-full min-h-[180px] p-4 bg-gray-50 dark:bg-[#1b2130] border border-gray-200 dark:border-[#334155] rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none resize-none text-base leading-relaxed placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-white"
-                  placeholder="What do you want to share with your network today? Type '/' for AI commands..."
-                ></textarea>
-                <div className="absolute bottom-3 right-3 flex items-center gap-2 text-slate-400 dark:text-slate-500">
-                  <span className="text-xs font-mono bg-gray-200 dark:bg-surface-darker px-2 py-0.5 rounded">
-                    0 / 2200
-                  </span>
-                  <button className="p-1 hover:text-primary transition-colors">
-                    <Smile className="h-4.5 w-4.5" />
-                  </button>
-                  <button className="p-1 hover:text-primary transition-colors">
+              <div className="relative group border border-gray-200 dark:border-[#334155] rounded-lg bg-gray-50 dark:bg-[#1b2130] focus-within:ring-2 focus-within:ring-primary focus-within:border-transparent">
+                <EditorContent editor={editor} />
+                <div className="flex items-center justify-end gap-2 p-2 border-t border-gray-100 dark:border-[#334155] bg-gray-50/50 dark:bg-[#1b2130]/50 relative z-10">
+                  <div className="relative" ref={emojiPickerRef}>
+                    <button
+                      onClick={handleEmoji}
+                      className={cn(
+                        "p-1 hover:text-primary transition-colors",
+                        showEmojiPicker && "text-primary bg-primary/10 rounded"
+                      )}
+                    >
+                      <Smile className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+                  <button
+                    onClick={handleBold}
+                    className={cn(
+                      "p-1 hover:text-primary transition-colors",
+                      editor?.isActive("bold") &&
+                        "text-primary bg-primary/10 rounded"
+                    )}
+                  >
                     <Bold className="h-4.5 w-4.5" />
                   </button>
-                  <button className="p-1 hover:text-primary transition-colors">
+                  <button
+                    onClick={handleItalic}
+                    className={cn(
+                      "p-1 hover:text-primary transition-colors",
+                      editor?.isActive("italic") &&
+                        "text-primary bg-primary/10 rounded"
+                    )}
+                  >
                     <Italic className="h-4.5 w-4.5" />
+                  </button>
+                  <button
+                    onClick={handleList}
+                    className={cn(
+                      "p-1 hover:text-primary transition-colors",
+                      editor?.isActive("bulletList") &&
+                        "text-primary bg-primary/10 rounded"
+                    )}
+                  >
+                    <List className="h-4.5 w-4.5" />
                   </button>
                 </div>
               </div>
+
+              {/* Responsive Emoji Picker that pushes layout */}
+              {showEmojiPicker && (
+                <div className="z-20 animate-in slide-in-from-top-2 duration-200">
+                  <EmojiPicker
+                    onEmojiClick={onEmojiClick}
+                    emojiStyle={EmojiStyle.GOOGLE}
+                    width="100%"
+                    height={350}
+                    searchDisabled
+                    skinTonesDisabled
+                    previewConfig={{ showPreview: false }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Media Assets */}
@@ -268,21 +367,13 @@ export default function ComposerPage() {
                   <MoreHorizontal className="h-5 w-5" />
                 </button>
               </div>
-              <div className="px-3 pb-2 text-sm text-slate-800 dark:text-gray-100 whitespace-pre-line leading-normal">
-                Just wrapped up an incredible workshop on the future of AI in
-                marketing! 🚀 It's fascinating to see how rapidly tools are
-                evolving. The key takeaway? It's not about replacing creativity,
-                but amplifying it.
-                <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-1">
-                  #MarketingAI
-                </span>
-                <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-1">
-                  #FutureOfWork
-                </span>
-                <span className="text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-1">
-                  #Innovation
-                </span>
-              </div>
+              <div
+                className="px-3 pb-2 text-sm text-slate-800 dark:text-gray-100 leading-normal prose prose-sm dark:prose-invert max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    content || "Your post content preview will appear here...",
+                }}
+              />
               <div className="w-full aspect-[4/3] bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
                 <img
                   className="w-full h-full object-cover"
