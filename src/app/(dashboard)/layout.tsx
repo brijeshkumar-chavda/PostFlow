@@ -36,7 +36,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen w-full bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden selection:bg-primary selection:text-white">
-      <div className="fixed top-4 right-4 z-[60]">
+      <div className="fixed top-3 right-4 z-[60]">
         <ThemeToggle />
       </div>
       {/* Sidebar for Desktop */}

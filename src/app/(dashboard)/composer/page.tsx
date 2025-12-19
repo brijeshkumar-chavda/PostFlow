@@ -38,7 +38,7 @@ export default function ComposerPage() {
   return (
     <div className="flex h-full flex-col font-display overflow-hidden bg-background-light dark:bg-background-dark">
       {/* Sub Header */}
-      <header className="flex items-center justify-between border-b border-gray-200 dark:border-[#1e293b] px-6 py-3 bg-white dark:bg-surface-darker z-10 shrink-0">
+      <header className="flex items-center justify-between border-b border-gray-200 dark:border-[#1e293b] pl-6 pr-16 py-3 bg-white dark:bg-surface-darker z-10 shrink-0">
         <div className="flex items-center gap-3 text-slate-900 dark:text-white">
           <div className="size-8 text-primary flex items-center justify-center">
             <LayoutGrid className="h-7 w-7" />
