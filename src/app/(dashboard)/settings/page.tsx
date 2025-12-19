@@ -12,10 +12,31 @@ import {
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+const VIEW_AVATARS = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuAWZhSeadNRq5CT01JmMTPpDLm0I3QoAvSh34q55m-v1ihnztXXnGPy1bdkwziBr5ly0FqMD6u0RtN0ashAxITlJdX0euWp-aPyDq9DbdoLFsAgb12OQM2XzYtsLGSvSFkng9s4Ul8Zp_myglj0wBsIqm_8H1308YS87zoNscJoSxBlyJb6JUDaczDlM5r-qrYahLrvjOqJpFswSRSfSsMc-fVQFhvXjz9aa82V70ZUr_hL9YEcovYrs9IFmASq3GT2VIRsy0-mLqOC",
+  "https://api.dicebear.com/9.x/avataaars/svg?seed=Felix",
+  "https://api.dicebear.com/9.x/avataaars/svg?seed=Aneka",
+  "https://api.dicebear.com/9.x/avataaars/svg?seed=Zack",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Felix",
+  "https://api.dicebear.com/9.x/notionists/svg?seed=Aneka",
+  "https://api.dicebear.com/9.x/micah/svg?seed=Felix",
+  "https://api.dicebear.com/9.x/micah/svg?seed=Aneka",
+];
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [avatar, setAvatar] = useState(VIEW_AVATARS[0]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Avoid hydration mismatch
   useEffect(() => {
@@ -62,15 +83,55 @@ export default function SettingsPage() {
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex flex-col items-center gap-4">
                   <div
-                    className="w-32 h-32 rounded-full bg-cover bg-center ring-4 ring-gray-100 dark:ring-slate-800 shadow-sm"
+                    className="w-32 h-32 rounded-full bg-cover bg-center ring-4 ring-gray-100 dark:ring-slate-800 shadow-sm transition-all duration-300"
                     style={{
-                      backgroundImage:
-                        'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAWZhSeadNRq5CT01JmMTPpDLm0I3QoAvSh34q55m-v1ihnztXXnGPy1bdkwziBr5ly0FqMD6u0RtN0ashAxITlJdX0euWp-aPyDq9DbdoLFsAgb12OQM2XzYtsLGSvSFkng9s4Ul8Zp_myglj0wBsIqm_8H1308YS87zoNscJoSxBlyJb6JUDaczDlM5r-qrYahLrvjOqJpFswSRSfSsMc-fVQFhvXjz9aa82V70ZUr_hL9YEcovYrs9IFmASq3GT2VIRsy0-mLqOC")',
+                      backgroundImage: `url("${avatar}")`,
                     }}
                   ></div>
-                  <button className="text-sm font-semibold text-primary hover:text-primary-hover hover:underline">
-                    Change Avatar
-                  </button>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <button className="text-sm font-semibold text-primary hover:text-primary-hover hover:underline outline-none">
+                        Change Avatar
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+                          Choose an Avatar
+                        </DialogTitle>
+                        <DialogDescription className="text-zinc-500 dark:text-zinc-400">
+                          Select a new avatar to personalize your profile.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid grid-cols-4 gap-4 py-4">
+                        {VIEW_AVATARS.map((url, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setAvatar(url);
+                              setIsDialogOpen(false);
+                            }}
+                            className={cn(
+                              "relative aspect-square rounded-full overflow-hidden border-2 transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                              avatar === url
+                                ? "border-primary ring-2 ring-primary/20"
+                                : "border-transparent hover:border-zinc-200 dark:hover:border-zinc-700"
+                            )}
+                          >
+                            <div
+                              className="w-full h-full bg-cover bg-center"
+                              style={{ backgroundImage: `url("${url}")` }}
+                            />
+                            {avatar === url && (
+                              <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                                <div className="w-2 h-2 bg-primary rounded-full"></div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                   <div className="space-y-2">
