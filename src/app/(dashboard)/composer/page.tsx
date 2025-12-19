@@ -51,10 +51,6 @@ export default function ComposerPage() {
           </span>
         </div>
         <div className="flex items-center gap-6">
-          <button className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-gray-300 hover:text-primary transition-colors">
-            <Settings className="h-4.5 w-4.5" />
-            <span>Settings</span>
-          </button>
           <div className="flex items-center gap-3 border-l border-gray-200 dark:border-[#1e293b] pl-6">
             <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white hover:bg-opacity-90 transition-all text-sm font-bold leading-normal tracking-[0.015em] shadow-[0_0_15px_rgba(10,102,194,0.3)]">
               <span className="truncate">Schedule Post</span>
