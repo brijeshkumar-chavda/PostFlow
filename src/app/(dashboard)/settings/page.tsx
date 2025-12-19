@@ -4,9 +4,6 @@ import {
   User,
   Settings as SettingsIcon,
   Bell,
-  Monitor,
-  Linkedin,
-  Instagram,
   Save,
   Moon,
   Sun,
@@ -99,62 +96,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Social Accounts */}
-          <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <Monitor className="h-5 w-5 text-primary" />
-                Connected Accounts
-              </h3>
-            </div>
-            <div className="p-6 space-y-4">
-              {/* LinkedIn */}
-              <div className="flex items-center justify-between p-4 border border-blue-100 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-[#0a66c2]">
-                    <Linkedin className="h-5 w-5 fill-current" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                      LinkedIn
-                    </h4>
-                    <p className="text-xs text-text-secondary">
-                      Connected as brijesh
-                    </p>
-                  </div>
-                </div>
-                <button className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors">
-                  Disconnect
-                </button>
-              </div>
-
-              {/* Instagram */}
-              <div className="flex items-center justify-between p-4 border border-blue-100 dark:border-slate-700 rounded-xl bg-gray-50/50 dark:bg-slate-800/50">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-pink-50 dark:bg-pink-900/30 flex items-center justify-center text-[#E1306C]">
-                    <Instagram className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">
-                      Instagram
-                    </h4>
-                    <p className="text-xs text-text-secondary">
-                      Connected as @brijesh_ux
-                    </p>
-                  </div>
-                </div>
-                <button className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors">
-                  Disconnect
-                </button>
-              </div>
-
-              {/* Add Account Button */}
-              <button className="w-full py-2 flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 dark:border-slate-700 rounded-xl text-text-secondary hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-bold">
-                + Add Another Account
-              </button>
             </div>
           </div>
 
