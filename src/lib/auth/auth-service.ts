@@ -1,37 +1,85 @@
 "use client";
 
-import { createClient } from "@supabase/supabase-js";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
-// NOTE: We will replace these with env variables later.
-// For now, the client is initialized without keys to prevent errors.
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
-const supabaseAnonKey =
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key";
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-export interface AuthProvider {
-  loginWithEmail: (email: string) => Promise<void>;
-  loginWithSocial: (
-    provider: "google" | "linkedin" | "facebook"
-  ) => Promise<void>;
-  logout: () => Promise<void>;
+export interface User {
+  name: string;
+  email: string;
+  token: string;
 }
 
-export const authService: AuthProvider = {
-  loginWithEmail: async (email: string) => {
-    // Adapter pattern: Call Supabase magic link or password logic here
-    console.log(`[AuthService] Logging in with email: ${email}`);
-    // await supabase.auth.signInWithOtp({ email });
+export const authService = {
+  login: async (email: string, password: string): Promise<User> => {
+    // 1. Mock Bypass for Test User (so frontend works without backend being ready)
+    if (email === "test@gmail.com" && password === "123") {
+      console.log("[AuthService] Mock login successful");
+      const mockUser = {
+        name: "Alex Johnson",
+        email: email,
+        token: "mock-jwt-token-123",
+      };
+      localStorage.setItem("user", JSON.stringify(mockUser));
+      return mockUser;
+    }
+
+    // 2. Real API Call
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Login failed");
+      }
+
+      const data = await response.json();
+      localStorage.setItem("user", JSON.stringify(data));
+      return data;
+    } catch (error) {
+      console.error("[AuthService] Login error:", error);
+      throw error;
+    }
   },
+
+  register: async (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string
+  ) => {
+    try {
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Registration failed");
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error("[AuthService] Register error:", error);
+      throw error;
+    }
+  },
+
   loginWithSocial: async (provider: "google" | "linkedin" | "facebook") => {
-    // Adapter pattern: Call Supabase OAuth
-    console.log(`[AuthService] Logging in with provider: ${provider}`);
-    // await supabase.auth.signInWithOAuth({ provider });
+    console.log(`[AuthService] Social login with ${provider} (mock)`);
+    // TODO: Implement real OAuth flow with .NET backend
   },
+
   logout: async () => {
-    console.log("[AuthService] Logging out");
-    await supabase.auth.signOut();
+    localStorage.removeItem("user");
+    // Optional: Call backend to invalidate token if needed
+  },
+
+  getCurrentUser: (): User | null => {
+    if (typeof window === "undefined") return null;
+    const userStr = localStorage.getItem("user");
+    return userStr ? JSON.parse(userStr) : null;
   },
 };

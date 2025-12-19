@@ -22,18 +22,16 @@ export default function LoginPage() {
     event.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await authService.login(email, password);
+      router.push("/dashboard");
+    } catch (error) {
+      alert(
+        "Login failed! Check console for .NET API errors or use test credentials."
+      );
+    } finally {
       setIsLoading(false);
-      // For test user or demo purposes, allow login
-      if (email === "test@gmail.com" && password === "123") {
-        router.push("/dashboard");
-      } else {
-        // Allow any login for now as requested "login easily",
-        // but prioritizing the specific test case they mentioned.
-        router.push("/dashboard");
-      }
-    }, 1500);
+    }
   }
 
   const handleSocialLogin = (provider: "google" | "linkedin" | "facebook") => {

@@ -24,19 +24,18 @@ A unified dashboard where users can:
 
 ## 🛠 Tech Stack
 
-### Frontend
+### Tech Stack Overview
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS v3 + shadcn/ui
-- **Icons**: Official Brand SVGs + Lucide React
-- **State Management**: Zustand
-
-### Backend & Infrastructure
-
-- **BaaS**: Supabase (Auth, Database, Storage, Edge Functions)
-- **Authentication**: Supabase Auth (Email/Password, Google, LinkedIn, Facebook)
-- **Database**: PostgreSQL (via Supabase)
+| Category     | Technology                  | Usage                               |
+| :----------- | :-------------------------- | :---------------------------------- |
+| **Frontend** | **Next.js 15**              | Main React framework (App Router)   |
+| **Language** | **TypeScript**              | Type safety across the codebase     |
+| **Styling**  | **Tailwind CSS v3**         | Styling with `shadcn/ui` components |
+| **Backend**  | **.NET Core Web API**       | High-performance C# API layer       |
+| **Database** | **PostgreSQL / SQL Server** | Managed via Entity Framework Core   |
+| **Auth**     | **JWT**                     | Secure token-based authentication   |
+| **State**    | **Zustand**                 | client-side state management        |
+| **Icons**    | **Lucide React**            | Consistent UI iconography           |
 
 ## 🔑 Key Features
 
