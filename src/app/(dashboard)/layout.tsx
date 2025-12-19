@@ -40,7 +40,7 @@ export default function DashboardLayout({
         <ThemeToggle />
       </div>
       {/* Sidebar for Desktop */}
-      <aside className="hidden w-72 flex-col justify-between border-r border-border-blue/30 bg-surface-dark p-6 lg:flex">
+      <aside className="hidden w-72 flex-col justify-between border-r border-gray-200 dark:border-border-blue/30 bg-white dark:bg-surface-dark p-6 lg:flex">
         <div className="flex flex-col gap-8">
           {/* User Profile */}
           <div className="flex items-center gap-3">
@@ -52,10 +52,10 @@ export default function DashboardLayout({
               }}
             ></div>
             <div className="flex flex-col">
-              <h1 className="text-white text-base font-bold leading-normal">
+              <h1 className="text-slate-900 dark:text-white text-base font-bold leading-normal">
                 Alex Johnson
               </h1>
-              <p className="text-text-secondary text-sm font-normal leading-normal">
+              <p className="text-slate-500 dark:text-text-secondary text-sm font-normal leading-normal">
                 @alexsocials
               </p>
             </div>
@@ -73,13 +73,15 @@ export default function DashboardLayout({
                     "flex items-center gap-3 px-3 py-3 rounded-lg transition-all",
                     isActive
                       ? "bg-[#1d4ed8] border border-border-blue/50 text-white"
-                      : "text-text-secondary hover:bg-[#1e40af] hover:text-white"
+                      : "text-slate-600 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-[#1e40af] hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
                   <item.icon
                     className={cn(
                       "h-5 w-5",
-                      isActive ? "text-white" : "group-hover:text-white"
+                      isActive
+                        ? "text-white"
+                        : "text-slate-500 dark:text-text-secondary group-hover:text-slate-900 dark:group-hover:text-white"
                     )}
                   />
                   <span className="text-sm font-medium leading-normal">
@@ -110,15 +112,17 @@ export default function DashboardLayout({
       {/* Mobile Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-surface-dark p-6 transition-transform duration-300 lg:hidden",
+          "fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-surface-dark p-6 transition-transform duration-300 lg:hidden",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-white text-xl font-bold">Menu</h1>
+          <h1 className="text-slate-900 dark:text-white text-xl font-bold">
+            Menu
+          </h1>
           <button
             onClick={() => setIsMobileMenuOpen(false)}
-            className="text-white"
+            className="text-slate-900 dark:text-white"
           >
             <X className="h-6 w-6" />
           </button>
@@ -135,7 +139,7 @@ export default function DashboardLayout({
                   "flex items-center gap-3 px-3 py-3 rounded-lg transition-all",
                   pathname === item.href
                     ? "bg-[#1d4ed8] border border-border-blue/50 text-white"
-                    : "text-text-secondary hover:bg-[#1e40af] hover:text-white"
+                    : "text-slate-600 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-[#1e40af] hover:text-slate-900 dark:hover:text-white"
                 )}
               >
                 <item.icon className="h-5 w-5" />
@@ -157,14 +161,16 @@ export default function DashboardLayout({
       {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Mobile Header */}
-        <header className="lg:hidden flex items-center justify-between p-4 bg-surface-dark border-b border-border-blue/30">
+        <header className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-surface-dark border-b border-gray-200 dark:border-border-blue/30">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="text-white"
+            className="text-slate-900 dark:text-white"
           >
             <Menu className="h-6 w-6" />
           </button>
-          <span className="text-white font-bold">PostFlow</span>
+          <span className="text-slate-900 dark:text-white font-bold">
+            PostFlow
+          </span>
           <div className="w-6" /> {/* Spacer */}
         </header>
 
