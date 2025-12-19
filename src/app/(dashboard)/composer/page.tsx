@@ -228,7 +228,6 @@ export default function ComposerPage() {
                     emojiStyle={EmojiStyle.GOOGLE}
                     width="100%"
                     height={350}
-                    searchDisabled
                     skinTonesDisabled
                     previewConfig={{ showPreview: false }}
                   />
