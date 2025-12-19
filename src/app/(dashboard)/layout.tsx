@@ -11,7 +11,6 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -36,9 +35,6 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen w-full bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden selection:bg-primary selection:text-white">
-      <div className="fixed top-3 right-4 z-[60]">
-        <ThemeToggle />
-      </div>
       {/* Sidebar for Desktop */}
       <aside className="hidden w-72 flex-col justify-between border-r border-gray-200 dark:border-border-blue/30 bg-white dark:bg-surface-dark p-6 lg:flex">
         <div className="flex flex-col gap-8">
