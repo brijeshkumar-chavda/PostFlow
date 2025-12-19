@@ -10,10 +10,17 @@ import {
   Laptop,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function SettingsPage() {
-  const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className="flex flex-col h-full bg-background-light dark:bg-background-dark overflow-hidden">
@@ -41,6 +48,8 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-4 lg:p-8 pb-20 scrollbar-hide">
         <div className="max-w-4xl mx-auto flex flex-col gap-6">
+          {/* ... Profile Section Code Omitted for brevity ... */}
+
           {/* Profile Section */}
           <div className="bg-surface-light dark:bg-surface-dark rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-border">
@@ -118,7 +127,7 @@ export default function SettingsPage() {
                     onClick={() => setTheme("light")}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all",
-                      theme === "light"
+                      mounted && theme === "light"
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-border hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800 text-text-secondary"
                     )}
@@ -130,7 +139,7 @@ export default function SettingsPage() {
                     onClick={() => setTheme("dark")}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all",
-                      theme === "dark"
+                      mounted && theme === "dark"
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-border hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800 text-text-secondary"
                     )}
@@ -142,7 +151,7 @@ export default function SettingsPage() {
                     onClick={() => setTheme("system")}
                     className={cn(
                       "flex flex-col items-center gap-2 p-3 rounded-xl border text-sm font-medium transition-all",
-                      theme === "system"
+                      mounted && theme === "system"
                         ? "border-primary bg-primary/5 text-primary"
                         : "border-border hover:bg-gray-50 dark:border-slate-700 dark:hover:bg-slate-800 text-text-secondary"
                     )}
