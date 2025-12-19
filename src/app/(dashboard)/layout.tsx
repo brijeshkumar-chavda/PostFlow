@@ -26,7 +26,7 @@ export default function DashboardLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Composer (AI)", href: "/composer", icon: FileEdit },
+    { name: "Composer", href: "/composer", icon: FileEdit },
     { name: "Calendar", href: "/calendar", icon: Calendar },
     { name: "Analytics", href: "/analytics", icon: BarChart },
     { name: "Accounts", href: "/accounts", icon: Users },
