@@ -1,5 +1,4 @@
-import { AzureOpenAI } from "openai";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { OpenAI, AzureOpenAI } from "openai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -10,53 +9,55 @@ export async function POST(req: Request) {
     const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
     const azureDeployment = process.env.AZURE_OPENAI_DEPLOYMENT;
     const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
-    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const azureDalleDeployment =
+      process.env.AZURE_OPENAI_DALLE_DEPLOYMENT || "dall-e-3";
+
+    const standardOpenAiKey = process.env.OPENAI_API_KEY;
+
+    // --- SETUP CLIENT ---
+    let client: OpenAI | AzureOpenAI | null = null;
+    let isAzure = false;
+
+    if (azureApiKey && azureEndpoint) {
+      client = new AzureOpenAI({
+        apiKey: azureApiKey,
+        endpoint: azureEndpoint,
+        apiVersion: azureApiVersion || "2024-02-15-preview",
+        // Do NOT set deployment here, as it may override the "model" parameter in DALL-E calls
+      });
+      isAzure = true;
+    } else if (standardOpenAiKey) {
+      client = new OpenAI({
+        apiKey: standardOpenAiKey,
+      });
+    }
+
+    if (!client) {
+      throw new Error(
+        "No OpenAI configuration found. Please set AZURE_OPENAI_API_KEY or OPENAI_API_KEY in your environment."
+      );
+    }
 
     // --- IMAGE GENERATION ---
     if (type === "image") {
-      console.log(`Generating image for prompt: "${topic}"...`);
+      console.log(
+        `Generating image for prompt: "${topic}" using ${
+          isAzure ? "Azure " + azureDalleDeployment : "Standard OpenAI"
+        }...`
+      );
 
-      // 1. Try Azure DALL-E
-      if (azureApiKey && azureEndpoint) {
-        try {
-          const client = new AzureOpenAI({
-            apiKey: azureApiKey,
-            endpoint: azureEndpoint,
-            apiVersion: azureApiVersion,
-            deployment: azureDeployment,
-          });
+      const imageResponse = await client.images.generate({
+        model: isAzure ? azureDalleDeployment : "dall-e-3",
+        prompt: topic,
+        n: 1,
+        size: "1024x1024",
+        style: "vivid",
+      });
 
-          const dalleDeployment =
-            process.env.AZURE_OPENAI_DALLE_DEPLOYMENT || "dall-e-3";
+      const imageUrl = imageResponse.data?.[0]?.url;
+      if (!imageUrl) throw new Error("No image URL returned from OpenAI.");
 
-          const imageResponse = await client.images.generate({
-            model: dalleDeployment,
-            prompt: topic,
-            n: 1,
-            size: "1024x1024",
-            style: "vivid",
-          });
-
-          const imageUrl = imageResponse.data?.[0]?.url;
-          if (imageUrl) {
-            console.log("Image generation successful (Azure DALL-E)");
-            return NextResponse.json({ content: imageUrl });
-          }
-        } catch (azureError: any) {
-          console.warn(
-            "Azure DALL-E failed, trying fallback:",
-            azureError.message
-          );
-          // Continue to fallback
-        }
-      }
-
-      // 2. Fallback: Pollinations.ai (Free, No Key)
-      console.log("Using Pollinations.ai fallback for image...");
-      const encodedTopic = encodeURIComponent(topic);
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedTopic}?width=1080&height=1080&model=flux`;
-
-      return NextResponse.json({ content: pollinationsUrl });
+      return NextResponse.json({ content: imageUrl });
     }
 
     // --- TEXT GENERATION (Post / Hashtags) ---
@@ -78,56 +79,23 @@ export async function POST(req: Request) {
       userPrompt = `Generate 10 trending hashtags for: "${topic}". Return ONLY the hashtags.`;
     }
 
-    // 1. Try Azure OpenAI (GPT-4)
-    if (azureApiKey && azureEndpoint && azureDeployment) {
-      try {
-        const client = new AzureOpenAI({
-          apiKey: azureApiKey,
-          endpoint: azureEndpoint,
-          apiVersion: azureApiVersion,
-          deployment: azureDeployment,
-        });
+    console.log(
+      `Generating ${type} with ${isAzure ? "Azure" : "Standard"} OpenAI...`
+    );
 
-        console.log(`Generating ${type} with Azure OpenAI...`);
-        const completion = await client.chat.completions.create({
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-          model: azureDeployment,
-          temperature: 0.7,
-        });
-        const text = completion.choices[0]?.message?.content || "";
-        return NextResponse.json({ content: cleanTextResponse(text) });
-      } catch (azureError: any) {
-        console.warn(
-          "Azure OpenAI Text failed, trying fallback:",
-          azureError.message
-        );
-      }
-    }
+    const completion = await client.chat.completions.create({
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      model: isAzure ? azureDeployment! : "gpt-4",
+      temperature: 0.7,
+    });
 
-    // 2. Fallback: Gemini (Google Generative AI)
-    if (geminiApiKey) {
-      try {
-        console.log(`Generating ${type} with Google Gemini...`);
-        const genAI = new GoogleGenerativeAI(geminiApiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-        const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
-        const result = await model.generateContent(combinedPrompt);
-        const text = result.response.text();
-
-        return NextResponse.json({ content: cleanTextResponse(text) });
-      } catch (geminiError: any) {
-        console.error("Gemini Generation Error:", geminiError);
-        throw new Error(`Gemini Error: ${geminiError.message}`);
-      }
-    }
-
-    throw new Error("No valid AI configuration found (Azure or Gemini).");
+    const text = completion.choices[0]?.message?.content || "";
+    return NextResponse.json({ content: cleanTextResponse(text) });
   } catch (error: any) {
-    console.error("Detailed API Error:", error);
+    console.error("AI API Error:", error);
     const errorMessage = error.message || String(error);
     return NextResponse.json(
       {

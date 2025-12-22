@@ -32,6 +32,8 @@ import {
   Wand2,
   Image as ImageIcon,
   Video,
+  RefreshCw,
+  Check,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -70,6 +72,11 @@ export default function ComposerPage() {
   const [selectedPreviewMedia, setSelectedPreviewMedia] = useState<File | null>(
     null
   );
+  // Generated media state (for preview before adoption)
+  const [generatedFile, setGeneratedFile] = useState<File | null>(null);
+  const [generatedFilePreviewUrl, setGeneratedFilePreviewUrl] = useState<
+    string | null
+  >(null);
 
   const handleSaveMedia = (originalFile: File, newFile: File) => {
     setMediaFiles((prev) =>
@@ -96,7 +103,12 @@ export default function ComposerPage() {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to generate image via API");
+          const errData = await response.json();
+          throw new Error(
+            errData.details ||
+              errData.error ||
+              "Failed to generate image via API"
+          );
         }
 
         const data = await response.json();
@@ -119,39 +131,47 @@ export default function ComposerPage() {
       const blob = await mediaRes.blob();
       const file = new File([blob], fileName, { type: mimeType });
 
-      setMediaFiles((prev) => [...prev, file]);
-      setIsMediaGeneratorOpen(false);
-      setMediaPrompt("");
+      // Instead of adding directly, set for preview
+      setGeneratedFile(file);
+      setGeneratedFilePreviewUrl(URL.createObjectURL(blob));
     } catch (error: any) {
       console.error("Failed to generate media:", error);
       alert(
         `Generation Failed: ${
           error.message || "Unknown error"
-        }. Falling back to simulation.`
+        }. Please check your API configuration.`
       );
-
-      // Fallback Simulation (Original Logic)
-      try {
-        const mediaUrl = `https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1080`;
-        const fileName = "generated-image.jpg";
-        const mimeType = "image/jpeg";
-        const response = await fetch(mediaUrl);
-        const blob = await response.blob();
-        const file = new File([blob], fileName, { type: mimeType });
-        setMediaFiles((prev) => [...prev, file]);
-        setIsMediaGeneratorOpen(false);
-        setMediaPrompt("");
-      } catch (e) {
-        console.error("Critical failure in media generation", e);
-      }
     } finally {
       setIsGeneratingMedia(false);
     }
   };
 
+  const handleUseGeneratedMedia = () => {
+    if (generatedFile) {
+      setMediaFiles((prev) => [...prev, generatedFile]);
+      setGeneratedFile(null);
+      if (generatedFilePreviewUrl) URL.revokeObjectURL(generatedFilePreviewUrl);
+      setGeneratedFilePreviewUrl(null);
+      setIsMediaGeneratorOpen(false);
+      setMediaPrompt("");
+    }
+  };
+
+  const handleDiscardGeneratedMedia = () => {
+    setGeneratedFile(null);
+    if (generatedFilePreviewUrl) URL.revokeObjectURL(generatedFilePreviewUrl);
+    setGeneratedFilePreviewUrl(null);
+  };
+
   const openMediaGenerator = (type: "image" | "video") => {
     setMediaGenType(type);
     setIsMediaGeneratorOpen(true);
+    // Reset state to ensure clean slate
+    setIsGeneratingMedia(false);
+    setMediaPrompt("");
+    setGeneratedFile(null);
+    if (generatedFilePreviewUrl) URL.revokeObjectURL(generatedFilePreviewUrl);
+    setGeneratedFilePreviewUrl(null);
   };
   const handleSuggestHashtags = async () => {
     setIsHashtagsLoading(true);
@@ -431,11 +451,11 @@ export default function ComposerPage() {
               </div>
             </div>
 
-            {/* Caption Section */}
+            {/* Post Content Section */}
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-end">
                 <label className="text-sm font-semibold text-slate-700 dark:text-gray-300">
-                  Caption
+                  Post
                 </label>
                 <div className="flex gap-2">
                   <button
@@ -527,30 +547,32 @@ export default function ComposerPage() {
 
             {/* Media Assets */}
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-semibold text-slate-700 dark:text-gray-300 flex items-center gap-2">
-                Media Assets
-                {mediaFiles.length > 0 && (
-                  <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                    {mediaFiles.length} file{mediaFiles.length !== 1 ? "s" : ""}{" "}
-                    selected
-                  </span>
-                )}
-              </label>
-              <div className="flex gap-2 mb-2">
-                <button
-                  onClick={() => openMediaGenerator("image")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-bold hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors"
-                >
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  Generate Image
-                </button>
-                <button
-                  onClick={() => openMediaGenerator("video")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
-                >
-                  <Video className="h-3.5 w-3.5" />
-                  Generate Video
-                </button>
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-semibold text-slate-700 dark:text-gray-300 flex items-center gap-2">
+                  Media Assets
+                  {mediaFiles.length > 0 && (
+                    <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                      {mediaFiles.length} file
+                      {mediaFiles.length !== 1 ? "s" : ""} selected
+                    </span>
+                  )}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => openMediaGenerator("image")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <ImageIcon className="h-3.5 w-3.5" />
+                    Generate Image
+                  </button>
+                  <button
+                    onClick={() => openMediaGenerator("video")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Video className="h-3.5 w-3.5" />
+                    Generate Video
+                  </button>
+                </div>
               </div>
               <div
                 onClick={handleFileClick}
@@ -869,35 +891,75 @@ export default function ComposerPage() {
               </div>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
-                    Describe the {mediaGenType} you want
-                  </label>
-                  <textarea
-                    value={mediaPrompt}
-                    onChange={(e) => setMediaPrompt(e.target.value)}
-                    placeholder={`e.g. A futuristic office workspace with neon lights...`}
-                    className="w-full h-32 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400"
-                  />
-                </div>
+                {!generatedFile ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
+                        Describe the {mediaGenType} you want
+                      </label>
+                      <textarea
+                        value={mediaPrompt}
+                        onChange={(e) => setMediaPrompt(e.target.value)}
+                        placeholder={`e.g. A futuristic office workspace with neon lights...`}
+                        className="w-full h-32 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400"
+                      />
+                    </div>
 
-                <button
-                  onClick={handleGenerateMedia}
-                  disabled={!mediaPrompt.trim() || isGeneratingMedia}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGeneratingMedia ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating Asset...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      Generate {mediaGenType === "image" ? "Image" : "Video"}
-                    </>
-                  )}
-                </button>
+                    <button
+                      onClick={handleGenerateMedia}
+                      disabled={!mediaPrompt.trim() || isGeneratingMedia}
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isGeneratingMedia ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating Asset...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Generate{" "}
+                          {mediaGenType === "image" ? "Image" : "Video"}
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                      {mediaGenType === "image" ? (
+                        <img
+                          src={generatedFilePreviewUrl || ""}
+                          alt="Generated AI asset"
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <video
+                          src={generatedFilePreviewUrl || ""}
+                          controls
+                          className="w-full h-full object-contain"
+                        />
+                      )}
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleDiscardGeneratedMedia}
+                        className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2.5 rounded-lg transition-all"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                        Try Again
+                      </button>
+                      <button
+                        onClick={handleUseGeneratedMedia}
+                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all"
+                      >
+                        <Check className="h-4 w-4" />
+                        Use Asset
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

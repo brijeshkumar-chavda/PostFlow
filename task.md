@@ -13,7 +13,7 @@
     - add functionality to re-generate the hashtags
 - Generate the image
   - Fix
-    - [x] image is not generating
+    - image is not generating
     - image is not saving
     - image is not uploading
     - image is not cropping
@@ -23,4 +23,7 @@
     - add functionality to save the image
     - add functionality to crop the image
     - add functionality to re-generate the image
+    - add generating progess-bar
 - Generate the
+
+how many numbers of image can be uploaded on linkedin and on instagram
