@@ -15,6 +15,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CreatePostModal } from "@/components/create-post-modal";
 
 export default function DashboardLayout({
   children,
@@ -90,10 +91,14 @@ export default function DashboardLayout({
         </div>
 
         <div>
-          <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-wide hover:brightness-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]">
-            <PlusCircle className="h-5 w-5" />
-            <span className="truncate">Create Post</span>
-          </button>
+          <div>
+            <CreatePostModal>
+              <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-wide hover:brightness-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                <PlusCircle className="h-5 w-5" />
+                <span className="truncate">Create Post</span>
+              </button>
+            </CreatePostModal>
+          </div>
         </div>
       </aside>
 
@@ -146,10 +151,14 @@ export default function DashboardLayout({
             ))}
           </nav>
           <div className="mt-auto">
-            <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-wide hover:brightness-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]">
-              <PlusCircle className="h-5 w-5" />
-              <span className="truncate">Create Post</span>
-            </button>
+            <div className="mt-auto">
+              <CreatePostModal>
+                <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-wide hover:brightness-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]">
+                  <PlusCircle className="h-5 w-5" />
+                  <span className="truncate">Create Post</span>
+                </button>
+              </CreatePostModal>
+            </div>
           </div>
         </div>
       </div>
