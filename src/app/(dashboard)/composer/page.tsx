@@ -42,6 +42,8 @@ import Placeholder from "@tiptap/extension-placeholder";
 import dynamic from "next/dynamic";
 import { EmojiStyle, Theme } from "emoji-picker-react";
 import { useTheme } from "next-themes";
+import { MediaThumbnail } from "@/components/media-thumbnail";
+import { MediaPreviewModal } from "@/components/media-preview-modal";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -65,45 +67,82 @@ export default function ComposerPage() {
   const [mediaGenType, setMediaGenType] = useState<"image" | "video">("image");
   const [mediaPrompt, setMediaPrompt] = useState("");
   const [isGeneratingMedia, setIsGeneratingMedia] = useState(false);
+  const [selectedPreviewMedia, setSelectedPreviewMedia] = useState<File | null>(
+    null
+  );
 
-  const handleGenerateMedia = () => {
+  const handleSaveMedia = (originalFile: File, newFile: File) => {
+    setMediaFiles((prev) =>
+      prev.map((f) => (f === originalFile ? newFile : f))
+    );
+    setSelectedPreviewMedia(newFile);
+  };
+
+  const handleGenerateMedia = async () => {
     if (!mediaPrompt.trim()) return;
 
     setIsGeneratingMedia(true);
-    // Simulate AI generation
-    setTimeout(async () => {
-      try {
-        let mediaUrl = "";
-        let fileName = "";
-        let mimeType = "";
+    try {
+      let mediaUrl = "";
+      let fileName = "";
+      let mimeType = "";
 
-        if (mediaGenType === "image") {
-          // Using Unsplash source for random image based on prompt (simulated)
-          mediaUrl = `https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1080`;
-          fileName = "generated-image.jpg";
-          mimeType = "image/jpeg";
-        } else {
-          // Using a placeholder video
-          mediaUrl =
-            "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-997-large.mp4";
-          fileName = "generated-video.mp4";
-          mimeType = "video/mp4";
+      if (mediaGenType === "image") {
+        // Call Real AI API
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: mediaPrompt, type: "image" }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to generate image via API");
         }
 
-        // Fetch the simulated asset to convert to File object
+        const data = await response.json();
+        mediaUrl = data.content; // API returns the image URL
+        fileName = `generated-${Date.now()}.png`;
+        mimeType = "image/png";
+      } else {
+        // Simulate video generation for now
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        mediaUrl =
+          "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-997-large.mp4";
+        fileName = "generated-video.mp4";
+        mimeType = "video/mp4";
+      }
+
+      // Fetch the asset (real or simulated) to convert to File object
+      // Note: fetching from external URL might fail due to CORS if not proxied,
+      // but DALL-E URLs typically allow GET.
+      const mediaRes = await fetch(mediaUrl);
+      const blob = await mediaRes.blob();
+      const file = new File([blob], fileName, { type: mimeType });
+
+      setMediaFiles((prev) => [...prev, file]);
+      setIsMediaGeneratorOpen(false);
+      setMediaPrompt("");
+    } catch (error) {
+      console.error("Failed to generate media:", error);
+      alert("Failed to generate media. Falling back to simulation.");
+
+      // Fallback Simulation (Original Logic)
+      try {
+        const mediaUrl = `https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1080`;
+        const fileName = "generated-image.jpg";
+        const mimeType = "image/jpeg";
         const response = await fetch(mediaUrl);
         const blob = await response.blob();
         const file = new File([blob], fileName, { type: mimeType });
-
         setMediaFiles((prev) => [...prev, file]);
         setIsMediaGeneratorOpen(false);
         setMediaPrompt("");
-      } catch (error) {
-        console.error("Failed to generate media", error);
-      } finally {
-        setIsGeneratingMedia(false);
+      } catch (e) {
+        console.error("Critical failure in media generation", e);
       }
-    }, 2000);
+    } finally {
+      setIsGeneratingMedia(false);
+    }
   };
 
   const openMediaGenerator = (type: "image" | "video") => {
@@ -564,33 +603,13 @@ export default function ComposerPage() {
               {mediaFiles.length > 0 && (
                 <div className="flex gap-3 overflow-x-auto py-2 custom-scrollbar">
                   {mediaFiles.map((file, index) => (
-                    <div
+                    <MediaThumbnail
                       key={index}
-                      className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-[#334155] group bg-gray-100 dark:bg-[#1b2130]"
-                    >
-                      {file.type.startsWith("video/") ? (
-                        <video
-                          src={URL.createObjectURL(file)}
-                          className="w-full h-full object-cover"
-                          controls={false} // Hide controls for preview
-                          muted // Mute video for preview
-                          loop // Loop video for preview
-                          autoPlay // Autoplay video for preview
-                        />
-                      ) : (
-                        <img
-                          className="w-full h-full object-cover"
-                          alt={`Upload preview ${index + 1}`}
-                          src={URL.createObjectURL(file)}
-                        />
-                      )}
-                      <button
-                        onClick={() => removeFile(index)}
-                        className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
+                      file={file}
+                      index={index}
+                      onRemove={removeFile}
+                      onClick={setSelectedPreviewMedia}
+                    />
                   ))}
                   <div
                     onClick={handleFileClick}
@@ -750,6 +769,15 @@ export default function ComposerPage() {
           </div>
         </aside>
       </div>
+
+      {/* Media Preview Modal */}
+      {selectedPreviewMedia && (
+        <MediaPreviewModal
+          file={selectedPreviewMedia}
+          onClose={() => setSelectedPreviewMedia(null)}
+          onSave={handleSaveMedia}
+        />
+      )}
 
       {/* Magic Post Modal */}
       {isMagicPostOpen && (

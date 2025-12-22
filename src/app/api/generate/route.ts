@@ -52,6 +52,25 @@ export async function POST(req: Request) {
       systemPrompt =
         "You are a social media growth expert. Return ONLY a string of hashtags separated by spaces.";
       userPrompt = `Generate 10 trending hashtags for a post about "${topic}". Return ONLY the hashtags.`;
+    } else if (type === "image") {
+      console.log(`Generating image for prompt: "${topic}"...`);
+
+      const dalleDeployment =
+        process.env.AZURE_OPENAI_DALLE_DEPLOYMENT || "dall-e-3";
+
+      const imageResponse = await client.images.generate({
+        model: dalleDeployment,
+        prompt: topic,
+        n: 1,
+        size: "1024x1024",
+        style: "vivid", // 'vivid' or 'natural'
+      });
+
+      const imageUrl = imageResponse.data?.[0]?.url;
+      if (!imageUrl) throw new Error("No image URL returned from Azure OpenAI");
+
+      console.log("Image generation successful");
+      return NextResponse.json({ content: imageUrl });
     }
 
     console.log(`Generating ${type} with Azure OpenAI...`);
