@@ -8,14 +8,26 @@ export async function POST(req: Request) {
   try {
     const { topic, type } = await req.json();
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log(
+      "API Key configured:",
+      !!apiKey,
+      apiKey ? `(starts with ${apiKey.substring(0, 4)}...)` : ""
+    );
+
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is missing from environment variables");
       return NextResponse.json(
-        { error: "GEMINI_API_KEY is not set" },
+        { error: "GEMINI_API_KEY is not set on server" },
         { status: 500 }
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    // Re-initialize per request to ensure env var is picked up
+    const genAI = new GoogleGenerativeAI(apiKey);
+
+    // Using gemini-2.0-flash as confirmed available via API list check
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     let prompt = "";
     if (type === "post") {
@@ -39,15 +51,20 @@ export async function POST(req: Request) {
       `;
     }
 
+    console.log(`Generating ${type} for topic: "${topic.substring(0, 20)}..."`);
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
+    console.log("Generation successful, length:", text.length);
 
     return NextResponse.json({ content: text });
-  } catch (error) {
-    console.error("Error generating content:", error);
+  } catch (error: any) {
+    console.error("Detailed API Error:", error);
     return NextResponse.json(
-      { error: "Failed to generate content" },
+      {
+        error: "Failed to generate content",
+        details: error.message || String(error),
+      },
       { status: 500 }
     );
   }

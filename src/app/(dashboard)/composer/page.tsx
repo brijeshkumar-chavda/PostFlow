@@ -122,16 +122,41 @@ export default function ComposerPage() {
         body: JSON.stringify({ topic: context, type: "hashtags" }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate hashtags");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(
+          errData.details || errData.error || "Failed to generate hashtags"
+        );
+      }
 
       const data = await response.json();
       // Ensure hashtags have spaces
       const hashtags = " " + data.content.trim();
       editor?.chain().focus().insertContent(hashtags).run();
-    } catch (error) {
-      console.error(error);
-      // Fallback if API fails
-      editor?.chain().focus().insertContent(" #Viral #Growth #Trending").run();
+    } catch (error: any) {
+      console.error(
+        "Hashtag Generation Error (falling back to simulation):",
+        error
+      );
+
+      // Fallback Simulation
+      const hashtags = [
+        " #ContentCreation",
+        " #GrowthMindset",
+        " #DigitalMarketing",
+        " #SocialMediaStrategy",
+        " #ProductivityHacks",
+        " #TechTrends",
+        " #StartupLife",
+        " #Innovation",
+      ];
+      const count = Math.floor(Math.random() * 3) + 3;
+      const selectedHashtags = hashtags
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count)
+        .join("");
+
+      editor?.chain().focus().insertContent(selectedHashtags).run();
     } finally {
       setIsHashtagsLoading(false);
     }
@@ -148,14 +173,35 @@ export default function ComposerPage() {
         body: JSON.stringify({ topic: magicTopic, type: "post" }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate post");
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(
+          errData.details || errData.error || "Failed to generate post"
+        );
+      }
 
       const data = await response.json();
       editor?.commands.setContent(data.content);
       setIsMagicPostOpen(false);
       setMagicTopic("");
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Magic Post Error (falling back to simulation):", error);
+
+      // Fallback Simulation
+      const generatedPost = `
+        <p><strong>${magicTopic}</strong></p>
+        <p>I utilized to think that ${magicTopic.toLowerCase()} was complicated. But then I realized I was approaching it all wrong.</p>
+        <p>Here are 3 specific ways to master it:</p>
+        <p>1. <strong>Start Small</strong>: Don't boil the ocean.</p>
+        <p>2. <strong>Stay Consistent</strong>: Show up every single day.</p>
+        <p>3. <strong>Analyze Data</strong>: Let the numbers guide you.</p>
+        <p>What's your experience with this? Let me know below! 👇</p>
+        <p>#${magicTopic.replace(/\s+/g, "")} #Growth #Learning</p>
+      `;
+
+      editor?.commands.setContent(generatedPost);
+      setIsMagicPostOpen(false);
+      setMagicTopic("");
     } finally {
       setIsMagicGenerating(false);
     }
