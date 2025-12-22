@@ -11,11 +11,11 @@
 - [x] Add "Suggest Hashtags" functionality <!-- id: 6 -->
 - [x] Add "Magic Post" functionality (simulated) <!-- id: 7 -->
 - [x] Add "Media Generation" functionality (simulated) <!-- id: 8 -->
-- [x] Integrate Real AI (Gemini) <!-- id: 9 -->
-- [/] Debug Magic Post generation failure <!-- id: 10 -->
-  - [ ] Verify API Key loading
-  - [ ] Check API route error handling
-  - [ ] Verify Gemini Model name validity
+- [x] Integrate Real AI (Azure OpenAI) <!-- id: 9 -->
+- [x] Debug Magic Post generation failure <!-- id: 10 -->
+  - [x] Verify API Key loading
+  - [x] Check API route error handling
+  - [x] Verify Gemini Model name validity
 - [ ] Refine "Magic Post" UI/UX <!-- id: 11 -->
 
 - [ ] Create API route `src/app/api/generate/route.ts` to handle AI requests securely <!-- id: 1 -->

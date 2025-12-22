@@ -113,8 +113,13 @@ export default function ComposerPage() {
   const handleSuggestHashtags = async () => {
     setIsHashtagsLoading(true);
     try {
-      // Use the current editor content as context for hashtags if available, or fallback to a generic prompt
-      const context = editor?.getText() || "social media growth and tech";
+      const editorText = editor?.getText() || "";
+      // Regex to find existing hashtags (word starting with #)
+      const existingHashtags = new Set(
+        (editorText.match(/#\w+/g) || []).map((tag) => tag.toLowerCase())
+      );
+
+      const context = editorText || "social media growth and tech";
 
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -130,9 +135,20 @@ export default function ComposerPage() {
       }
 
       const data = await response.json();
-      // Ensure hashtags have spaces
-      const hashtags = " " + data.content.trim();
-      editor?.chain().focus().insertContent(hashtags).run();
+      const newHashtagsRaw = data.content.trim().split(/\s+/);
+
+      // Filter out duplicates
+      const uniqueHashtags = newHashtagsRaw.filter(
+        (tag: string) => !existingHashtags.has(tag.toLowerCase())
+      );
+
+      if (uniqueHashtags.length > 0) {
+        const hashtagsToInsert = " " + uniqueHashtags.join(" ");
+        editor?.chain().focus().insertContent(hashtagsToInsert).run();
+      } else {
+        // Optional: visual feedback that no new tags were added could go here
+        console.log("No new unique hashtags found");
+      }
     } catch (error: any) {
       console.error(
         "Hashtag Generation Error (falling back to simulation):",
@@ -150,13 +166,30 @@ export default function ComposerPage() {
         " #StartupLife",
         " #Innovation",
       ];
-      const count = Math.floor(Math.random() * 3) + 3;
-      const selectedHashtags = hashtags
-        .sort(() => 0.5 - Math.random())
-        .slice(0, count)
-        .join("");
 
-      editor?.chain().focus().insertContent(selectedHashtags).run();
+      const editorText = editor?.getText() || "";
+      const existingHashtags = new Set(
+        (editorText.match(/#\w+/g) || []).map((tag) => tag.toLowerCase())
+      );
+
+      // Shuffle and pick 3-5 that aren't already there
+      const uniqueFallback = hashtags
+        .map((h) => h.trim())
+        .filter((h) => !existingHashtags.has(h.toLowerCase()));
+
+      if (uniqueFallback.length > 0) {
+        const count = Math.min(
+          Math.floor(Math.random() * 3) + 3,
+          uniqueFallback.length
+        );
+        const selectedHashtags =
+          " " +
+          uniqueFallback
+            .sort(() => 0.5 - Math.random())
+            .slice(0, count)
+            .join(" ");
+        editor?.chain().focus().insertContent(selectedHashtags).run();
+      }
     } finally {
       setIsHashtagsLoading(false);
     }
