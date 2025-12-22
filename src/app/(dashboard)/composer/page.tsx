@@ -30,6 +30,8 @@ import {
   List,
   Loader2,
   Wand2,
+  Image as ImageIcon,
+  Video,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -58,6 +60,81 @@ export default function ComposerPage() {
   const [isMagicPostOpen, setIsMagicPostOpen] = useState(false);
   const [magicTopic, setMagicTopic] = useState("");
   const [isMagicGenerating, setIsMagicGenerating] = useState(false);
+  const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
+  const [isMediaGeneratorOpen, setIsMediaGeneratorOpen] = useState(false);
+  const [mediaGenType, setMediaGenType] = useState<"image" | "video">("image");
+  const [mediaPrompt, setMediaPrompt] = useState("");
+  const [isGeneratingMedia, setIsGeneratingMedia] = useState(false);
+
+  const handleGenerateMedia = () => {
+    if (!mediaPrompt.trim()) return;
+
+    setIsGeneratingMedia(true);
+    // Simulate AI generation
+    setTimeout(async () => {
+      try {
+        let mediaUrl = "";
+        let fileName = "";
+        let mimeType = "";
+
+        if (mediaGenType === "image") {
+          // Using Unsplash source for random image based on prompt (simulated)
+          mediaUrl = `https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1080`;
+          fileName = "generated-image.jpg";
+          mimeType = "image/jpeg";
+        } else {
+          // Using a placeholder video
+          mediaUrl =
+            "https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-a-circuit-board-997-large.mp4";
+          fileName = "generated-video.mp4";
+          mimeType = "video/mp4";
+        }
+
+        // Fetch the simulated asset to convert to File object
+        const response = await fetch(mediaUrl);
+        const blob = await response.blob();
+        const file = new File([blob], fileName, { type: mimeType });
+
+        setMediaFiles((prev) => [...prev, file]);
+        setIsMediaGeneratorOpen(false);
+        setMediaPrompt("");
+      } catch (error) {
+        console.error("Failed to generate media", error);
+      } finally {
+        setIsGeneratingMedia(false);
+      }
+    }, 2000);
+  };
+
+  const openMediaGenerator = (type: "image" | "video") => {
+    setMediaGenType(type);
+    setIsMediaGeneratorOpen(true);
+  };
+  const handleSuggestHashtags = () => {
+    setIsHashtagsLoading(true);
+    // Simulate AI delay
+    setTimeout(() => {
+      const hashtags = [
+        " #ContentCreation",
+        " #GrowthMindset",
+        " #DigitalMarketing",
+        " #SocialMediaStrategy",
+        " #ProductivityHacks",
+        " #TechTrends",
+        " #StartupLife",
+        " #Innovation",
+      ];
+      // Pick 3-5 random hashtags
+      const count = Math.floor(Math.random() * 3) + 3;
+      const selectedHashtags = hashtags
+        .sort(() => 0.5 - Math.random())
+        .slice(0, count)
+        .join("");
+
+      editor?.chain().focus().insertContent(selectedHashtags).run();
+      setIsHashtagsLoading(false);
+    }, 1200);
+  };
 
   const handleMagicPost = () => {
     if (!magicTopic.trim()) return;
@@ -245,9 +322,17 @@ export default function ComposerPage() {
                     <Wand2 className="h-3.5 w-3.5" />
                     Magic Post
                   </button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <Hash className="h-3.5 w-3.5" />
-                    Suggest Hashtags
+                  <button
+                    onClick={handleSuggestHashtags}
+                    disabled={isHashtagsLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                  >
+                    {isHashtagsLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Hash className="h-3.5 w-3.5" />
+                    )}
+                    {isHashtagsLoading ? "Suggesting..." : "Suggest Hashtags"}
                   </button>
                 </div>
               </div>
@@ -328,6 +413,22 @@ export default function ComposerPage() {
                   </span>
                 )}
               </label>
+              <div className="flex gap-2 mb-2">
+                <button
+                  onClick={() => openMediaGenerator("image")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 text-xs font-bold hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  Generate Image
+                </button>
+                <button
+                  onClick={() => openMediaGenerator("video")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors"
+                >
+                  <Video className="h-3.5 w-3.5" />
+                  Generate Video
+                </button>
+              </div>
               <div
                 onClick={handleFileClick}
                 onDragOver={handleDragOver}
@@ -627,6 +728,65 @@ export default function ComposerPage() {
                 AI will generate a structured post with hooks, points, and
                 hashtags.
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Media Generator Modal */}
+      {isMediaGeneratorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-[#334155] animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-primary">
+                  {mediaGenType === "image" ? (
+                    <ImageIcon className="h-5 w-5" />
+                  ) : (
+                    <Video className="h-5 w-5" />
+                  )}
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white capitalize">
+                    Generate AI {mediaGenType}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsMediaGeneratorOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
+                    Describe the {mediaGenType} you want
+                  </label>
+                  <textarea
+                    value={mediaPrompt}
+                    onChange={(e) => setMediaPrompt(e.target.value)}
+                    placeholder={`e.g. A futuristic office workspace with neon lights...`}
+                    className="w-full h-32 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400"
+                  />
+                </div>
+
+                <button
+                  onClick={handleGenerateMedia}
+                  disabled={!mediaPrompt.trim() || isGeneratingMedia}
+                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingMedia ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating Asset...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate {mediaGenType === "image" ? "Image" : "Video"}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
