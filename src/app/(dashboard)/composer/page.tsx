@@ -390,24 +390,6 @@ export default function ComposerPage() {
             </div>
 
             {/* Comment Section */}
-            <div className="border-t border-gray-200 dark:border-[#1e293b] pt-6 mt-2">
-              <button className="flex items-center justify-between w-full p-3 rounded-lg bg-gray-50 dark:bg-[#1b2130] hover:bg-gray-100 dark:hover:bg-[#1e293b] transition-colors group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                    <MessageSquare className="h-5 w-5" />
-                  </div>
-                  <div className="text-left">
-                    <p className="text-sm font-semibold dark:text-white">
-                      First Comment
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-gray-400">
-                      Add links or extra hashtags here
-                    </p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-white" />
-              </button>
-            </div>
           </div>
         </main>
 
