@@ -1,13 +1,13 @@
-# Debugging Media Asset Upload
+# AI Integration Plan
 
 ## Current Status
 
-- User requested removal of "First Comment" section.
-- Previous media upload bug fixed.
+- User requested connection to real AI API (Gemini Pro).
+- Current implementation is simulated.
 
 ## Todo
 
-- [x] Analyze `composer/page.tsx` for upload handlers <!-- id: 0 -->
-- [x] Verify if state is being updated correctly <!-- id: 1 -->
-- [x] Fix the issue <!-- id: 2 -->
-- [x] Remove "First Comment" section <!-- id: 3 -->
+- [ ] Install `@google/generative-ai` SDK <!-- id: 0 -->
+- [ ] Create API route `src/app/api/generate/route.ts` to handle AI requests securely <!-- id: 1 -->
+- [ ] Update `composer/page.tsx` to call this API route instead of simulating <!-- id: 2 -->
+- [ ] Ensure `.env.local` is set up for `GEMINI_API_KEY` <!-- id: 3 -->
