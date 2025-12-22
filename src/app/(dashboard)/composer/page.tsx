@@ -36,22 +36,68 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Placeholder from "@tiptap/extension-placeholder";
 import dynamic from "next/dynamic";
-import { EmojiStyle } from "emoji-picker-react";
+import { EmojiStyle, Theme } from "emoji-picker-react";
+import { useTheme } from "next-themes";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
 export default function ComposerPage() {
+  const { resolvedTheme } = useTheme();
   const [platform, setPlatform] = useState("all");
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
 
+  const emojiPickerContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setMediaFiles((prev) => [...prev, ...newFiles]);
+      // Reset the value to allow selecting the same file again
+      e.target.value = "";
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const newFiles = Array.from(e.dataTransfer.files);
+      setMediaFiles((prev) => [...prev, ...newFiles]);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target as Node)
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        emojiPickerContainerRef.current &&
+        !emojiPickerContainerRef.current.contains(event.target as Node)
       ) {
         setShowEmojiPicker(false);
       }
@@ -118,7 +164,7 @@ export default function ComposerPage() {
               className="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-gray-200 dark:ring-[#1e293b]"
               style={{
                 backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCbxQikr-McggRSefUcmUC_uk5vwIgJ-eDL9HD-h9LG5sWgTST2EClfPe_aUxYtV8LHfKgj8BbWKnjL_KgFMWyAeQJMWvz618Bdw4BA6uIvND2y_WNb4EXEFL7HwxQDgfKtwSqzSAMpF534U-Q1LDJ5gFAyx0ZDqxZ_2GOnePSKPzUyIzYS7eNfypiywLLM_iJ-KlasFdHy7PU2O6pMmjXtxcxLBY2nBs5l6P234xlzEx80wS3QJ4JC9--TRv8CWtBXiDMNFstiCoqe")',
+                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCbxQikr-McggRSefUcmUC_uk5vwIgJ-eDL9HD-h9LG5sWgTST2EClfPe_aUxYtV8LHfKgFMWyAeQJMWvz618Bdw4BA6uIvND2y_WNb4EXEFL7HwxQDgfKtwSqzSAMpF534U-Q1LDJ5gFAyx0ZDqxZ_2GOnePSKPzUyIzYS7eNfypiywLLM_iJ-KlasFdHy7PU2O6pMmjXtxcxLBY2nBs5l6P234xlzEx80wS3QJ4JC9--TRv8CWtBXiDMNFstiCoqe")',
               }}
             ></div>
           </div>
@@ -163,11 +209,11 @@ export default function ComposerPage() {
                   Caption
                 </label>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-colors">
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                     <Sparkles className="h-3.5 w-3.5" />
                     Generate Hook
                   </button>
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-[#1e293b] hover:bg-[#2c3b54] text-white text-xs font-bold transition-colors">
+                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                     <Hash className="h-3.5 w-3.5" />
                     Suggest Hashtags
                   </button>
@@ -222,10 +268,14 @@ export default function ComposerPage() {
 
               {/* Responsive Emoji Picker that pushes layout */}
               {showEmojiPicker && (
-                <div className="z-20 animate-in slide-in-from-top-2 duration-200">
+                <div
+                  ref={emojiPickerContainerRef}
+                  className="z-20 animate-in slide-in-from-top-2 duration-200"
+                >
                   <EmojiPicker
                     onEmojiClick={onEmojiClick}
                     emojiStyle={EmojiStyle.GOOGLE}
+                    theme={resolvedTheme === "dark" ? Theme.DARK : Theme.LIGHT}
                     width="100%"
                     height={350}
                     skinTonesDisabled
@@ -237,10 +287,35 @@ export default function ComposerPage() {
 
             {/* Media Assets */}
             <div className="flex flex-col gap-3">
-              <label className="text-sm font-semibold text-slate-700 dark:text-gray-300">
+              <label className="text-sm font-semibold text-slate-700 dark:text-gray-300 flex items-center gap-2">
                 Media Assets
+                {mediaFiles.length > 0 && (
+                  <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    {mediaFiles.length} file{mediaFiles.length !== 1 ? "s" : ""}{" "}
+                    selected
+                  </span>
+                )}
               </label>
-              <div className="border-2 border-dashed border-gray-300 dark:border-[#334155] bg-gray-50 dark:bg-surface-darker rounded-xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all group">
+              <div
+                onClick={handleFileClick}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={cn(
+                  "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all group",
+                  isDragging
+                    ? "border-primary bg-primary/10"
+                    : "border-gray-300 dark:border-[#334155] bg-gray-50 dark:bg-surface-darker hover:border-primary/50 hover:bg-primary/5"
+                )}
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  onChange={handleFileChange}
+                  accept="image/*,video/*"
+                  multiple // Allow multiple file selection
+                />
                 <div className="size-12 rounded-full bg-gray-200 dark:bg-[#1e293b] flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Upload className="text-slate-500 dark:text-primary h-6 w-6" />
                 </div>
@@ -249,25 +324,69 @@ export default function ComposerPage() {
                     Click to upload or drag and drop
                   </p>
                   <p className="text-xs text-slate-500 dark:text-gray-400 mt-1">
-                    SVG, PNG, JPG or MP4 (max. 800x400px)
+                    SVG, PNG, JPG or MP4
                   </p>
+                  <div className="mt-4 flex items-start gap-2 text-left bg-blue-50 dark:bg-blue-900/10 p-2.5 rounded-lg border border-blue-100 dark:border-blue-900/20">
+                    <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                    <p className="text-xs text-slate-600 dark:text-slate-300">
+                      <span className="font-semibold text-slate-800 dark:text-white">
+                        Pro Tip:
+                      </span>{" "}
+                      Use{" "}
+                      <span className="font-mono bg-white dark:bg-[#1e293b] px-1 rounded border border-gray-200 dark:border-[#334155]">
+                        4:5
+                      </span>{" "}
+                      (1080x1350px) or{" "}
+                      <span className="font-mono bg-white dark:bg-[#1e293b] px-1 rounded border border-gray-200 dark:border-[#334155]">
+                        1:1
+                      </span>{" "}
+                      (1080x1080px) ratio for best results on LinkedIn &
+                      Instagram.
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="flex gap-3 overflow-x-auto py-2">
-                <div className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-[#334155] group">
-                  <img
-                    className="w-full h-full object-cover"
-                    alt="Modern architecture"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyXdriyZXjdgU66B-ge7FSHYdSTdfKTcplDJrPDJo-x2jTIgrCfTSIjEeaTKWiqXFcm9aUhI8186QMirrXlUO-lI-xm2aDzAPi_6rGwZayvLDqLRdba-CZED-BOhjs4rX7Ji9VUkzhL4-JPZcZvigeB0P-qzYzKzBaRYEvi3s4pDdQllXruCKvSgWCV-cvy4SHpKcoyXnU8A2YcKsS1ettfVomrsCUxP2t3eaPZx71aN68_LUXdo9MWMV92g8_vVCmNwo9UAdkMBA1"
-                  />
-                  <button className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <X className="h-3 w-3" />
-                  </button>
+
+              {/* Selected Media Previews */}
+              {mediaFiles.length > 0 && (
+                <div className="flex gap-3 overflow-x-auto py-2 custom-scrollbar">
+                  {mediaFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="relative w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-gray-200 dark:border-[#334155] group bg-gray-100 dark:bg-[#1b2130]"
+                    >
+                      {file.type.startsWith("video/") ? (
+                        <video
+                          src={URL.createObjectURL(file)}
+                          className="w-full h-full object-cover"
+                          controls={false} // Hide controls for preview
+                          muted // Mute video for preview
+                          loop // Loop video for preview
+                          autoPlay // Autoplay video for preview
+                        />
+                      ) : (
+                        <img
+                          className="w-full h-full object-cover"
+                          alt={`Upload preview ${index + 1}`}
+                          src={URL.createObjectURL(file)}
+                        />
+                      )}
+                      <button
+                        onClick={() => removeFile(index)}
+                        className="absolute top-1 right-1 bg-black/60 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                  <div
+                    onClick={handleFileClick}
+                    className="relative w-24 h-24 shrink-0 rounded-lg flex items-center justify-center border border-gray-200 dark:border-[#334155] bg-gray-50 dark:bg-[#1b2130] text-slate-400 dark:text-slate-500 hover:text-primary cursor-pointer hover:border-primary/50 transition-colors"
+                  >
+                    <Plus className="h-6 w-6" />
+                  </div>
                 </div>
-                <div className="relative w-24 h-24 shrink-0 rounded-lg flex items-center justify-center border border-gray-200 dark:border-[#334155] bg-gray-50 dark:bg-[#1b2130] text-slate-400 dark:text-slate-500 hover:text-primary cursor-pointer hover:border-primary/50 transition-colors">
-                  <Plus className="h-6 w-6" />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Comment Section */}
