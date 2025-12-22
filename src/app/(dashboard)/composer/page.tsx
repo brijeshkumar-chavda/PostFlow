@@ -28,6 +28,8 @@ import {
   Send,
   Zap,
   List,
+  Loader2,
+  Wand2,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -53,6 +55,33 @@ export default function ComposerPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [isMagicPostOpen, setIsMagicPostOpen] = useState(false);
+  const [magicTopic, setMagicTopic] = useState("");
+  const [isMagicGenerating, setIsMagicGenerating] = useState(false);
+
+  const handleMagicPost = () => {
+    if (!magicTopic.trim()) return;
+
+    setIsMagicGenerating(true);
+    // Simulate AI generation
+    setTimeout(() => {
+      const generatedPost = `
+        <p><strong>${magicTopic}</strong></p>
+        <p>I utilized to think that ${magicTopic.toLowerCase()} was complicated. But then I realized I was approaching it all wrong.</p>
+        <p>Here are 3 specific ways to master it:</p>
+        <p>1. <strong>Start Small</strong>: Don't boil the ocean.</p>
+        <p>2. <strong>Stay Consistent</strong>: Show up every single day.</p>
+        <p>3. <strong>Analyze Data</strong>: Let the numbers guide you.</p>
+        <p>What's your experience with this? Let me know below! 👇</p>
+        <p>#${magicTopic.replace(/\s+/g, "")} #Growth #Learning</p>
+      `;
+
+      editor?.commands.setContent(generatedPost);
+      setIsMagicGenerating(false);
+      setIsMagicPostOpen(false);
+      setMagicTopic("");
+    }, 1500);
+  };
 
   const handleFileClick = () => {
     fileInputRef.current?.click();
@@ -209,9 +238,12 @@ export default function ComposerPage() {
                   Caption
                 </label>
                 <div className="flex gap-2">
-                  <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Generate Hook
+                  <button
+                    onClick={() => setIsMagicPostOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    Magic Post
                   </button>
                   <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white text-xs font-bold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
                     <Hash className="h-3.5 w-3.5" />
@@ -537,6 +569,68 @@ export default function ComposerPage() {
           </div>
         </aside>
       </div>
+
+      {/* Magic Post Modal */}
+      {isMagicPostOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-[#334155] animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                  <Wand2 className="h-5 w-5" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                    Magic Post Generator
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsMagicPostOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
+                    What should this post be about?
+                  </label>
+                  <textarea
+                    value={magicTopic}
+                    onChange={(e) => setMagicTopic(e.target.value)}
+                    placeholder="e.g. My journey learning React, 5 tips for productivity..."
+                    className="w-full h-32 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400"
+                  />
+                </div>
+
+                <button
+                  onClick={handleMagicPost}
+                  disabled={!magicTopic.trim() || isMagicGenerating}
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isMagicGenerating ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Writing Magic...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate Full Post
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div className="px-6 py-3 bg-gray-50 dark:bg-[#0f111a] border-t border-gray-200 dark:border-[#334155]">
+              <p className="text-xs text-center text-slate-500 dark:text-gray-400">
+                AI will generate a structured post with hooks, points, and
+                hashtags.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
