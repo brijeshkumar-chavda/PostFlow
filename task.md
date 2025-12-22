@@ -13,14 +13,14 @@
     - add functionality to re-generate the hashtags
 - Generate the image
   - Fix
-    - image is not generating
+    - [x] image is not generating
     - image is not saving
     - image is not uploading
-    - [x] image is not cropping
+    - image is not cropping
   - Add
     - add functionality to rotate the image
     - add functionality to flip the image
     - add functionality to save the image
-    - [x] add functionality to crop the image
+    - add functionality to crop the image
     - add functionality to re-generate the image
 - Generate the

@@ -122,9 +122,13 @@ export default function ComposerPage() {
       setMediaFiles((prev) => [...prev, file]);
       setIsMediaGeneratorOpen(false);
       setMediaPrompt("");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to generate media:", error);
-      alert("Failed to generate media. Falling back to simulation.");
+      alert(
+        `Generation Failed: ${
+          error.message || "Unknown error"
+        }. Falling back to simulation.`
+      );
 
       // Fallback Simulation (Original Logic)
       try {

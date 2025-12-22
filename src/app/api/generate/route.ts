@@ -1,109 +1,147 @@
 import { AzureOpenAI } from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const { topic, type } = await req.json();
 
-    const apiKey = process.env.AZURE_OPENAI_API_KEY;
-    const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
-    const deployment = process.env.AZURE_OPENAI_DEPLOYMENT;
-    const apiVersion = process.env.AZURE_OPENAI_API_VERSION;
+    const azureApiKey = process.env.AZURE_OPENAI_API_KEY;
+    const azureEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
+    const azureDeployment = process.env.AZURE_OPENAI_DEPLOYMENT;
+    const azureApiVersion = process.env.AZURE_OPENAI_API_VERSION;
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey || !endpoint || !deployment) {
-      console.error("Azure OpenAI configuration is missing");
-      return NextResponse.json(
-        { error: "Azure OpenAI configuration is missing on server" },
-        { status: 500 }
-      );
+    // --- IMAGE GENERATION ---
+    if (type === "image") {
+      console.log(`Generating image for prompt: "${topic}"...`);
+
+      // 1. Try Azure DALL-E
+      if (azureApiKey && azureEndpoint) {
+        try {
+          const client = new AzureOpenAI({
+            apiKey: azureApiKey,
+            endpoint: azureEndpoint,
+            apiVersion: azureApiVersion,
+            deployment: azureDeployment,
+          });
+
+          const dalleDeployment =
+            process.env.AZURE_OPENAI_DALLE_DEPLOYMENT || "dall-e-3";
+
+          const imageResponse = await client.images.generate({
+            model: dalleDeployment,
+            prompt: topic,
+            n: 1,
+            size: "1024x1024",
+            style: "vivid",
+          });
+
+          const imageUrl = imageResponse.data?.[0]?.url;
+          if (imageUrl) {
+            console.log("Image generation successful (Azure DALL-E)");
+            return NextResponse.json({ content: imageUrl });
+          }
+        } catch (azureError: any) {
+          console.warn(
+            "Azure DALL-E failed, trying fallback:",
+            azureError.message
+          );
+          // Continue to fallback
+        }
+      }
+
+      // 2. Fallback: Pollinations.ai (Free, No Key)
+      console.log("Using Pollinations.ai fallback for image...");
+      const encodedTopic = encodeURIComponent(topic);
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedTopic}?width=1080&height=1080&model=flux`;
+
+      return NextResponse.json({ content: pollinationsUrl });
     }
 
-    const client = new AzureOpenAI({
-      apiKey,
-      endpoint,
-      apiVersion,
-      deployment,
-    });
-
+    // --- TEXT GENERATION (Post / Hashtags) ---
     let systemPrompt = "You are a helpful AI assistant.";
     let userPrompt = "";
 
     if (type === "post") {
       systemPrompt = `
         You are an expert social media manager. Your goal is to write a highly engaging, viral-style LinkedIn/Instagram post.
-        
         Formatting Rules:
         1. Return ONLY the raw HTML content suitable for a Tiptap editor (using <p>, <strong>, etc).
-        2. Do NOT include markdown code blocks (like \`\`\`html).
-        3. Do NOT include introductory text like "Here is your post". Return ONLY the post itself.
+        2. Do NOT include markdown code blocks.
+        3. Do NOT include introductory text.
       `;
-      userPrompt = `
-        Topic: "${topic}"
-        
-        Requirements:
-        1. Strong hook (first 2 lines).
-        2. Short paragraphs.
-        3. Use bolding (<strong>) for key phrases.
-        4. 3-5 actionable points.
-        5. End with a question.
-        6. Include 3-5 hashtags at the end.
-      `;
+      userPrompt = `Topic: "${topic}"\n\nWrite a post with a strong hook, short paragraphs, and 3-5 hashtags.`;
     } else if (type === "hashtags") {
       systemPrompt =
-        "You are a social media growth expert. Return ONLY a string of hashtags separated by spaces.";
-      userPrompt = `Generate 10 trending hashtags for a post about "${topic}". Return ONLY the hashtags.`;
-    } else if (type === "image") {
-      console.log(`Generating image for prompt: "${topic}"...`);
-
-      const dalleDeployment =
-        process.env.AZURE_OPENAI_DALLE_DEPLOYMENT || "dall-e-3";
-
-      const imageResponse = await client.images.generate({
-        model: dalleDeployment,
-        prompt: topic,
-        n: 1,
-        size: "1024x1024",
-        style: "vivid", // 'vivid' or 'natural'
-      });
-
-      const imageUrl = imageResponse.data?.[0]?.url;
-      if (!imageUrl) throw new Error("No image URL returned from Azure OpenAI");
-
-      console.log("Image generation successful");
-      return NextResponse.json({ content: imageUrl });
+        "You are a social media expert. Return ONLY a string of hashtags separated by spaces.";
+      userPrompt = `Generate 10 trending hashtags for: "${topic}". Return ONLY the hashtags.`;
     }
 
-    console.log(`Generating ${type} with Azure OpenAI...`);
+    // 1. Try Azure OpenAI (GPT-4)
+    if (azureApiKey && azureEndpoint && azureDeployment) {
+      try {
+        const client = new AzureOpenAI({
+          apiKey: azureApiKey,
+          endpoint: azureEndpoint,
+          apiVersion: azureApiVersion,
+          deployment: azureDeployment,
+        });
 
-    const completion = await client.chat.completions.create({
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      model: deployment, // In Azure, model arg takes the deployment name
-      temperature: 0.7,
-      max_tokens: 1024,
-    });
+        console.log(`Generating ${type} with Azure OpenAI...`);
+        const completion = await client.chat.completions.create({
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          model: azureDeployment,
+          temperature: 0.7,
+        });
+        const text = completion.choices[0]?.message?.content || "";
+        return NextResponse.json({ content: cleanTextResponse(text) });
+      } catch (azureError: any) {
+        console.warn(
+          "Azure OpenAI Text failed, trying fallback:",
+          azureError.message
+        );
+      }
+    }
 
-    const text = completion.choices[0]?.message?.content || "";
+    // 2. Fallback: Gemini (Google Generative AI)
+    if (geminiApiKey) {
+      try {
+        console.log(`Generating ${type} with Google Gemini...`);
+        const genAI = new GoogleGenerativeAI(geminiApiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // Clean up any potential markdown code blocks if the model ignores instruction
-    const cleanText = text
-      .replace(/```html/g, "")
-      .replace(/```/g, "")
-      .trim();
+        const combinedPrompt = `${systemPrompt}\n\n${userPrompt}`;
+        const result = await model.generateContent(combinedPrompt);
+        const text = result.response.text();
 
-    console.log("Generation successful, length:", cleanText.length);
+        return NextResponse.json({ content: cleanTextResponse(text) });
+      } catch (geminiError: any) {
+        console.error("Gemini Generation Error:", geminiError);
+        throw new Error(`Gemini Error: ${geminiError.message}`);
+      }
+    }
 
-    return NextResponse.json({ content: cleanText });
+    throw new Error("No valid AI configuration found (Azure or Gemini).");
   } catch (error: any) {
-    console.error("Detailed Azure API Error:", error);
+    console.error("Detailed API Error:", error);
+    const errorMessage = error.message || String(error);
     return NextResponse.json(
       {
         error: "Failed to generate content",
-        details: error.message || String(error),
+        details: errorMessage,
       },
       { status: 500 }
     );
   }
+}
+
+function cleanTextResponse(text: string) {
+  return text
+    .replace(/```html/g, "")
+    .replace(/```/g, "")
+    .trim();
 }
