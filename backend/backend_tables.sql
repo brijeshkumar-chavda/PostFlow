@@ -4,7 +4,15 @@
 CREATE TABLE Users (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Email NVARCHAR(255) NOT NULL UNIQUE,
-    Name NVARCHAR(255) NOT NULL,
+   Rahter than opening the two pop. 
+one is generate image and then try again and use assets.
+why can you just show one single pop that show left side image and right side option like the 
+
+1. discription box
+2. re-generate the image 
+3. save
+
+so user has freedom and easy of acess to type the discription agian and generate the image and also re-generate button is there with save button  Name NVARCHAR(255) NOT NULL,
     PasswordHash NVARCHAR(MAX) NOT NULL, -- Store hashed passwords
     CreatedAt DATETIME2 DEFAULT GETDATE()
 );

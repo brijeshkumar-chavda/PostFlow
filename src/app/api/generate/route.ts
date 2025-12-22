@@ -77,6 +77,17 @@ export async function POST(req: Request) {
       systemPrompt =
         "You are a social media expert. Return ONLY a string of hashtags separated by spaces.";
       userPrompt = `Generate 10 trending hashtags for: "${topic}". Return ONLY the hashtags.`;
+    } else if (type === "visual_description") {
+      systemPrompt = `
+        You are a creative director and prompt engineering expert for AI image generators (like DALL-E 3). 
+        Your goal is to take a social media post and describe a vivid, high-quality, and symbolic image that represents the core message of the post.
+        Guidelines:
+        - Focus on lighting, composition, mood, and specific subjects.
+        - The description should be 1-2 sentences.
+        - DO NOT include text, logos, or watermarks in the description.
+        - Return ONLY the visual description itself.
+      `;
+      userPrompt = `Post Content: "${topic}"\n\nCreate a vivid visual description for this post.`;
     }
 
     console.log(

@@ -69,6 +69,7 @@ export default function ComposerPage() {
   const [mediaGenType, setMediaGenType] = useState<"image" | "video">("image");
   const [mediaPrompt, setMediaPrompt] = useState("");
   const [isGeneratingMedia, setIsGeneratingMedia] = useState(false);
+  const [isExtractingContext, setIsExtractingContext] = useState(false);
   const [selectedPreviewMedia, setSelectedPreviewMedia] = useState<File | null>(
     null
   );
@@ -146,6 +147,39 @@ export default function ComposerPage() {
     }
   };
 
+  const handleGeneratePromptFromContext = async () => {
+    const editorText = editor?.getText() || "";
+    if (!editorText.trim()) {
+      alert(
+        "Please write some text in your post first to generate a contextual image."
+      );
+      return;
+    }
+
+    setIsExtractingContext(true);
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: editorText, type: "visual_description" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to extract context from post");
+      }
+
+      const data = await response.json();
+      setMediaPrompt(data.content);
+    } catch (error: any) {
+      console.error("Failed to extract context:", error);
+      alert(
+        "Failed to analyze post context. Please try entering a description manually."
+      );
+    } finally {
+      setIsExtractingContext(false);
+    }
+  };
+
   const handleUseGeneratedMedia = () => {
     if (generatedFile) {
       setMediaFiles((prev) => [...prev, generatedFile]);
@@ -161,6 +195,11 @@ export default function ComposerPage() {
     setGeneratedFile(null);
     if (generatedFilePreviewUrl) URL.revokeObjectURL(generatedFilePreviewUrl);
     setGeneratedFilePreviewUrl(null);
+  };
+
+  const handleRegenerateMedia = () => {
+    handleDiscardGeneratedMedia();
+    handleGenerateMedia();
   };
 
   const openMediaGenerator = (type: "image" | "video") => {
@@ -869,9 +908,9 @@ export default function ComposerPage() {
       {/* Media Generator Modal */}
       {isMediaGeneratorOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200 dark:border-[#334155] animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden border border-gray-200 dark:border-[#334155] animate-in zoom-in-95 duration-200">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
                   {mediaGenType === "image" ? (
                     <ImageIcon className="h-5 w-5" />
@@ -890,76 +929,103 @@ export default function ComposerPage() {
                 </button>
               </div>
 
-              <div className="space-y-4">
-                {!generatedFile ? (
-                  <>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 dark:text-gray-300 mb-1.5">
-                        Describe the {mediaGenType} you want
-                      </label>
-                      <textarea
-                        value={mediaPrompt}
-                        onChange={(e) => setMediaPrompt(e.target.value)}
-                        placeholder={`e.g. A futuristic office workspace with neon lights...`}
-                        className="w-full h-32 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400"
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleGenerateMedia}
-                      disabled={!mediaPrompt.trim() || isGeneratingMedia}
-                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGeneratingMedia ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Generating Asset...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4" />
-                          Generate{" "}
-                          {mediaGenType === "image" ? "Image" : "Video"}
-                        </>
-                      )}
-                    </button>
-                  </>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                      {mediaGenType === "image" ? (
+              <div className="flex flex-col md:flex-row gap-8">
+                {/* Left Column: Preview area */}
+                <div className="flex-1 min-h-[300px] flex flex-col gap-4">
+                  <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                    {isGeneratingMedia ? (
+                      <div className="flex flex-col items-center gap-3">
+                        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                        <p className="text-sm font-medium text-slate-500 animate-pulse">
+                          Generating your asset...
+                        </p>
+                      </div>
+                    ) : generatedFilePreviewUrl ? (
+                      mediaGenType === "image" ? (
                         <img
-                          src={generatedFilePreviewUrl || ""}
+                          src={generatedFilePreviewUrl}
                           alt="Generated AI asset"
                           className="w-full h-full object-contain"
                         />
                       ) : (
                         <video
-                          src={generatedFilePreviewUrl || ""}
+                          src={generatedFilePreviewUrl}
                           controls
                           className="w-full h-full object-contain"
                         />
-                      )}
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button
-                        onClick={handleDiscardGeneratedMedia}
-                        className="flex-1 flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-2.5 rounded-lg transition-all"
-                      >
-                        <RefreshCw className="h-4 w-4" />
-                        Try Again
-                      </button>
-                      <button
-                        onClick={handleUseGeneratedMedia}
-                        className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg transition-all"
-                      >
-                        <Check className="h-4 w-4" />
-                        Use Asset
-                      </button>
-                    </div>
+                      )
+                    ) : (
+                      <div className="flex flex-col items-center gap-3 text-slate-400">
+                        <ImageIcon className="h-12 w-12 opacity-20" />
+                        <p className="text-sm">
+                          No {mediaGenType} generated yet
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+
+                {/* Right Column: Settings & Actions */}
+                <div className="flex-1 flex flex-col gap-5">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-gray-300">
+                        Description
+                      </label>
+                      <button
+                        onClick={handleGeneratePromptFromContext}
+                        disabled={isExtractingContext || isGeneratingMedia}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold transition-all disabled:opacity-50"
+                      >
+                        {isExtractingContext ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        Generate from Post
+                      </button>
+                    </div>
+                    <textarea
+                      value={mediaPrompt}
+                      onChange={(e) => setMediaPrompt(e.target.value)}
+                      disabled={isGeneratingMedia}
+                      placeholder={`e.g. A futuristic office workspace with neon lights...`}
+                      className="w-full h-40 rounded-lg border border-gray-300 dark:border-[#334155] bg-white dark:bg-black/20 p-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent resize-none text-slate-900 dark:text-white placeholder:text-slate-400 transition-all disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div className="mt-auto space-y-3">
+                    <button
+                      onClick={handleGenerateMedia}
+                      disabled={!mediaPrompt.trim() || isGeneratingMedia}
+                      className="w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 shadow-lg active:scale-95"
+                    >
+                      {isGeneratingMedia ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Regenerating...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4" />
+                          {generatedFile
+                            ? "Regenerate"
+                            : "Generate " +
+                              (mediaGenType === "image" ? "Image" : "Video")}
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={handleUseGeneratedMedia}
+                      disabled={!generatedFile || isGeneratingMedia}
+                      className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all disabled:opacity-50 shadow-lg active:scale-95 translate-y-0 hover:-translate-y-0.5"
+                    >
+                      <Check className="h-5 w-5" />
+                      Save Asset
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
