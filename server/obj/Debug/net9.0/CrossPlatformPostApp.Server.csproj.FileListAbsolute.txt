@@ -120,3 +120,4 @@
 /home/brijesh/Documents/projects/CrossPlatformPostApp/server/bin/Debug/net9.0/zh-Hans/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 /home/brijesh/Documents/projects/CrossPlatformPostApp/server/bin/Debug/net9.0/zh-Hant/Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.resources.dll
 /home/brijesh/Documents/projects/CrossPlatformPostApp/server/bin/Debug/net9.0/Scalar.AspNetCore.dll
+/home/brijesh/Documents/projects/CrossPlatformPostApp/server/bin/Debug/net9.0/CrossPlatformPostApp.Server.staticwebassets.runtime.json

@@ -38,6 +38,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Ensure upload directory exists
+var uploadPath = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "uploads");
+Directory.CreateDirectory(uploadPath);
+
+app.UseStaticFiles();
+
 app.UseCors("AllowClient");
 
 app.MapControllers(); 

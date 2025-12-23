@@ -52,7 +52,9 @@ const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 export default function ComposerPage() {
   const { resolvedTheme } = useTheme();
   const [platform, setPlatform] = useState("all");
-  const [previewDevice, setPreviewDevice] = useState("desktop");
+  const [previewPlatform, setPreviewPlatform] = useState<
+    "linkedin" | "instagram"
+  >("linkedin");
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -78,6 +80,26 @@ export default function ComposerPage() {
   const [generatedFilePreviewUrl, setGeneratedFilePreviewUrl] = useState<
     string | null
   >(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let url: string | null = null;
+
+    if (selectedPreviewMedia) {
+      url = URL.createObjectURL(selectedPreviewMedia);
+      setPreviewUrl(url);
+    } else if (mediaFiles.length > 0) {
+      // Default to the first file if none selected
+      url = URL.createObjectURL(mediaFiles[0]);
+      setPreviewUrl(url);
+    } else {
+      setPreviewUrl(null);
+    }
+
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [selectedPreviewMedia, mediaFiles]);
 
   const handleSaveMedia = (originalFile: File, newFile: File) => {
     setMediaFiles((prev) =>
@@ -399,8 +421,7 @@ export default function ComposerPage() {
       StarterKit,
       Underline,
       Placeholder.configure({
-        placeholder:
-          "What do you want to share with your network today? Type '/' for AI commands...",
+        placeholder: "What do you want to share with your network today?",
       }),
     ],
     content: "",
@@ -687,142 +708,266 @@ export default function ComposerPage() {
         <aside className="hidden xl:flex w-[480px] bg-gray-100 dark:bg-[#0b0d14] flex-col shrink-0 border-l border-gray-200 dark:border-[#1e293b]">
           <div className="px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-[#1e293b]">
             <h3 className="font-medium text-slate-700 dark:text-white">
-              Live Preview
+              Mobile Preview
             </h3>
-            <div className="flex items-center gap-2 bg-white dark:bg-[#1b2130] rounded-md p-1 border border-gray-200 dark:border-[#1e293b]">
-              <button
-                onClick={() => setPreviewDevice("mobile")}
-                className={cn(
-                  "p-1.5 rounded transition-colors",
-                  previewDevice === "mobile"
-                    ? "bg-gray-100 dark:bg-surface-darker text-primary shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-primary"
-                )}
-              >
-                <Smartphone className="h-4.5 w-4.5" />
-              </button>
-              <button
-                onClick={() => setPreviewDevice("desktop")}
-                className={cn(
-                  "p-1.5 rounded transition-colors",
-                  previewDevice === "desktop"
-                    ? "bg-gray-100 dark:bg-surface-darker text-primary shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-primary"
-                )}
-              >
-                <Monitor className="h-4.5 w-4.5" />
-              </button>
-            </div>
           </div>
 
           <div className="flex px-6 pt-4 pb-2 gap-6 border-b border-gray-200 dark:border-[#1e293b]">
-            <button className="text-sm font-semibold pb-3 border-b-2 border-primary text-slate-900 dark:text-white">
+            <button
+              onClick={() => setPreviewPlatform("linkedin")}
+              className={cn(
+                "text-sm font-semibold pb-3 transition-colors",
+                previewPlatform === "linkedin"
+                  ? "border-b-2 border-primary text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200"
+              )}
+            >
               LinkedIn
             </button>
-            <button className="text-sm font-medium pb-3 text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200 transition-colors">
+            <button
+              onClick={() => setPreviewPlatform("instagram")}
+              className={cn(
+                "text-sm font-semibold pb-3 transition-colors",
+                previewPlatform === "instagram"
+                  ? "border-b-2 border-primary text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-200"
+              )}
+            >
               Instagram
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-100 dark:bg-[#0b0d14]">
-            {/* LinkedIn Mockup */}
-            <div className="w-full max-w-[400px] bg-white dark:bg-[#1b2130] border border-gray-200 dark:border-[#334155] rounded-lg shadow-sm h-fit">
-              <div className="p-3 flex gap-3">
-                <div
-                  className="size-12 rounded-full bg-cover bg-center shrink-0"
-                  style={{
-                    backgroundImage:
-                      'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDsK3sdpDqhjkP-Jsc6S9U46cH0RrNVr6lTqPlZiEtxXuQfaoJm_c8WTfJX901UM7mXvRGW8eUQXxI73IB0fdH5fWkyCASF2E46fhzUU2Xqu-RxPhjSbSZQZJPaLYSp1ZOwaTHV388-1Hr81qo-ji6FwKqId9zE-S7xyk8lZJvqydgxqZIfYQc3OhH00Ov38o4Rwq9BbF58s5a5jRbAC27P71eyqMCbgv66bE1Xr6Bwuxt58OY-cGeN-itQWoJZk2yxqkSzMhL4bAkc")',
-                  }}
-                ></div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1">
-                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">
-                      Jane Doe
-                    </h4>
-                    <span className="text-xs text-slate-500 dark:text-gray-400">
-                      • 1st
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-gray-400 truncate">
-                    Marketing Strategist | AI Enthusiast
-                  </p>
-                  <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-                    <span>Now</span>
-                    <span>•</span>
-                    <Globe className="h-[10px] w-[10px]" />
-                  </div>
-                </div>
-                <button className="text-slate-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded p-1 h-fit">
-                  <MoreHorizontal className="h-5 w-5" />
-                </button>
-              </div>
-              <div
-                className="px-3 pb-2 text-sm text-slate-800 dark:text-gray-100 leading-normal prose prose-sm dark:prose-invert max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    content || "Your post content preview will appear here...",
-                }}
-              />
-              <div className="w-full aspect-[4/3] bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
-                <img
-                  className="w-full h-full object-cover"
-                  alt="Architecture preview"
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBU44ZCVRqssyNlYf3T1CQGCfzOn8lS2a4znzn2TceTDmu16VinGTyrf_FnFxZr-2gw--7YZGqgzONziMN9R6NQ6-baWmy0M1oIVTLBQBSMcO7jJZL-Gnlb8Z18AuiWE_KAExSLb6oZIhSnWAoqwNZpUBR-0u5yq652ACw3n0GhwmU_6hWf4NQeFNcQozL5BWx1sw5_MPpuWMxjXyv5xLra68LF62k8dlIFinHsSD8n6OMr7TET0vYUmMk_jO2Q0Jmd8vxyF_xKaow"
-                />
-              </div>
-              <div className="px-3 py-2 border-b border-gray-100 dark:border-[#334155]">
-                <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-gray-400">
-                  <div className="flex -space-x-1">
-                    <div className="size-4 rounded-full bg-blue-500 flex items-center justify-center">
-                      <ThumbsUp className="h-[10px] w-[10px] text-white" />
-                    </div>
-                    <div className="size-4 rounded-full bg-red-500 flex items-center justify-center">
-                      <Heart className="h-[10px] w-[10px] text-white" />
-                    </div>
-                    <div className="size-4 rounded-full bg-yellow-500 flex items-center justify-center">
-                      <Lightbulb className="h-[10px] w-[10px] text-white" />
-                    </div>
-                  </div>
-                  <span className="ml-1 hover:text-blue-500 hover:underline cursor-pointer">
-                    You and 42 others
-                  </span>
-                  <span className="ml-auto hover:text-blue-500 hover:underline cursor-pointer">
-                    8 comments
-                  </span>
+            {/* Mobile Mockup Container */}
+            <div className="w-[375px] bg-white dark:bg-black rounded-[30px] border-[8px] border-gray-900 dark:border-gray-800 shadow-xl overflow-hidden relative h-[812px] flex flex-col shrink-0">
+              {/* Dynamic Status Bar */}
+              <div className="h-7 bg-white dark:bg-black w-full flex items-center justify-between px-6 shrink-0 z-20">
+                <span className="text-[10px] font-semibold text-slate-900 dark:text-white">
+                  9:41
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 bg-slate-900 dark:bg-white rounded-full opacity-20"></div>
+                  <div className="w-3 h-3 bg-slate-900 dark:bg-white rounded-full opacity-20"></div>
+                  <div className="w-4 h-2.5 border border-slate-900 dark:border-white rounded-sm opacity-40"></div>
                 </div>
               </div>
-              <div className="px-2 py-1 flex items-center justify-between">
-                {[
-                  { label: "Like", icon: ThumbsUp },
-                  { label: "Comment", icon: MessageSquare },
-                  { label: "Repost", icon: Repeat },
-                  { label: "Send", icon: Send },
-                ].map((action) => (
-                  <button
-                    key={action.label}
-                    className="flex items-center justify-center gap-2 flex-1 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-slate-600 dark:text-gray-300 transition-colors"
-                  >
-                    <action.icon className="h-4.5 w-4.5" />
-                    <span className="text-sm font-medium">{action.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
 
-          <div className="p-4 bg-gray-50 dark:bg-surface-darker border-t border-gray-200 dark:border-[#1e293b]">
-            <div className="flex gap-3 items-start">
-              <Zap className="text-primary h-5 w-5 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-white">
-                  Pro Tip
-                </p>
-                <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-                  LinkedIn posts with images get 2x higher comment rates. You
-                  are doing great!
-                </p>
-              </div>
+              {previewPlatform === "linkedin" ? (
+                /* LinkedIn Mobile */
+                <div className="flex-1 flex flex-col bg-[#F3F2EF] dark:bg-black overflow-y-auto custom-scrollbar">
+                  {/* LinkedIn Header */}
+                  <div className="bg-white dark:bg-[#1b1f23] px-3 py-2 flex items-center justify-between shrink-0">
+                    <div className="size-8 rounded-full bg-slate-200">
+                      {/* Avatar Placeholder */}
+                      <img
+                        src="https://ui-avatars.com/api/?name=Jane+Doe&background=random"
+                        className="rounded-full"
+                        alt="Profile"
+                      />
+                    </div>
+                    <div className="flex-1 mx-3 bg-[#EEF3F8] dark:bg-gray-800 rounded-md h-8 flex items-center px-2">
+                      <span className="text-xs text-slate-500">Search</span>
+                    </div>
+                    <MessageSquare className="text-slate-600 dark:text-slate-300 h-6 w-6" />
+                  </div>
+
+                  {/* Feed Post */}
+                  <div className="bg-white dark:bg-[#1b1f23] mt-2 pb-2">
+                    {/* Post Header */}
+                    <div className="px-3 pt-3 pb-1 flex gap-2">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Jane+Doe&background=random"
+                        className="size-10 rounded-full"
+                        alt="Profile"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                            Jane Doe
+                          </h4>
+                          <MoreHorizontal className="h-5 w-5 text-slate-600" />
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                          Marketing Strategist
+                        </p>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                          <span>1h • </span> <Globe className="h-3 w-3" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div
+                      className="px-3 py-1 text-sm text-slate-900 dark:text-white leading-normal whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: content || "Start writing to preview...",
+                      }}
+                    />
+
+                    {/* Media */}
+                    {previewUrl ? (
+                      <div className="mt-2 w-full">
+                        {previewUrl.includes("video") ||
+                        selectedPreviewMedia?.type.startsWith("video") ? (
+                          <video
+                            src={previewUrl}
+                            className="w-full h-auto max-h-[400px] object-cover"
+                            controls
+                          />
+                        ) : (
+                          <img
+                            src={previewUrl}
+                            className="w-full h-auto object-cover"
+                            alt="Content"
+                          />
+                        )}
+                      </div>
+                    ) : (
+                      <div className="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-48 flex items-center justify-center text-slate-400 text-xs">
+                        No media
+                      </div>
+                    )}
+
+                    {/* Interaction Stats */}
+                    <div className="px-3 py-2 flex items-center justify-between text-xs text-slate-500 border-b border-gray-100 dark:border-gray-800">
+                      <div className="flex items-center gap-1">
+                        <ThumbsUp className="h-3 w-3 text-blue-600 filled" /> 24
+                      </div>
+                      <div>2 comments</div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="px-1 py-1 flex items-center justify-between mt-1">
+                      <button className="flex flex-col items-center gap-1 p-2 flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                        <ThumbsUp className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                          Like
+                        </span>
+                      </button>
+                      <button className="flex flex-col items-center gap-1 p-2 flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                        <MessageSquare className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                          Comment
+                        </span>
+                      </button>
+                      <button className="flex flex-col items-center gap-1 p-2 flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                        <Repeat className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                          Repost
+                        </span>
+                      </button>
+                      <button className="flex flex-col items-center gap-1 p-2 flex-1 hover:bg-slate-50 dark:hover:bg-slate-800 rounded">
+                        <Send className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                        <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300">
+                          Send
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                /* Instagram Mobile */
+                <div className="flex-1 flex flex-col bg-white dark:bg-black overflow-y-auto custom-scrollbar">
+                  {/* IG Header */}
+                  <div className="flex items-center justify-center h-11 border-b border-gray-100 dark:border-gray-800 shrink-0 relative">
+                    <span className="font-bold text-base">Posts</span>
+                    <ChevronRight className="absolute right-3 h-6 w-6 rotate-90 opacity-0" />
+                  </div>
+
+                  {/* Post Header */}
+                  <div className="flex items-center justify-between px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src="https://ui-avatars.com/api/?name=Jane+Doe&background=random"
+                        className="size-8 rounded-full border border-gray-200"
+                        alt="Profile"
+                      />
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        janedoe_marketing
+                      </span>
+                    </div>
+                    <MoreHorizontal className="h-5 w-5" />
+                  </div>
+
+                  {/* Media (Square or 4:5) */}
+                  <div className="w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
+                    {previewUrl ? (
+                      content &&
+                      !previewUrl ? null : selectedPreviewMedia?.type.startsWith(
+                          "video"
+                        ) ? (
+                        <video
+                          src={previewUrl}
+                          className="w-full h-auto max-h-[470px] object-cover"
+                          controls
+                        />
+                      ) : (
+                        <img
+                          src={previewUrl}
+                          className="w-full h-auto object-cover"
+                          alt="IG Content"
+                        />
+                      )
+                    ) : (
+                      <div className="aspect-square flex items-center justify-center text-slate-400 text-sm">
+                        No media
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Bar */}
+                  <div className="flex items-center justify-between px-3 py-2.5">
+                    <div className="flex items-center gap-4">
+                      <Heart className="h-6 w-6 text-slate-900 dark:text-white" />
+                      <MessageSquare className="h-6 w-6 text-slate-900 dark:text-white -rotate-90" />
+                      <Send className="h-6 w-6 text-slate-900 dark:text-white" />
+                    </div>
+                    <div>
+                      {/* Bookmark Icon replacement since we might not have it imported */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-bookmark h-6 w-6"
+                      >
+                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* Likes */}
+                  <div className="px-3 text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                    24 likes
+                  </div>
+
+                  {/* Caption */}
+                  <div className="px-3 pb-4">
+                    <p className="text-sm text-slate-900 dark:text-white leading-normal">
+                      <span className="font-semibold mr-2">
+                        janedoe_marketing
+                      </span>
+                      <span
+                        dangerouslySetInnerHTML={{ __html: content || "" }}
+                      ></span>
+                    </p>
+                    <div className="mt-1 text-xs text-slate-400">
+                      View all 2 comments
+                    </div>
+                    <div className="mt-1 text-[10px] text-slate-400 uppercase tracking-wide">
+                      1 HOUR AGO
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Home Indicator */}
+              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-900/20 dark:bg-white/20 rounded-full z-20"></div>
             </div>
           </div>
         </aside>
