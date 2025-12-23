@@ -35,15 +35,17 @@ Stores connected social media accounts (LinkedIn, Instagram) for each user.
 
 Stores post content created in the Composer.
 
-| Column           | Type                                    | Description                                       |
-| :--------------- | :-------------------------------------- | :------------------------------------------------ |
-| `id`             | UUID / INT                              | Primary Key                                       |
-| `user_id`        | FK -> Users.id                          | Author                                            |
-| `content`        | TEXT                                    | The post caption/text (supports HTML from Tiptap) |
-| `status`         | ENUM('draft', 'scheduled', 'published') | Current state                                     |
-| `scheduled_time` | TIMESTAMP                               | If status is 'scheduled'                          |
-| `created_at`     | TIMESTAMP                               | Creation time                                     |
-| `updated_at`     | TIMESTAMP                               | Last edit time                                    |
+| Column              | Type                                    | Description                                       |
+| :------------------ | :-------------------------------------- | :------------------------------------------------ |
+| `id`                | UUID / INT                              | Primary Key                                       |
+| `user_id`           | FK -> Users.id                          | Author                                            |
+| `content`           | TEXT                                    | The post caption/text (supports HTML from Tiptap) |
+| `status`            | ENUM('draft', 'scheduled', 'published') | Current state                                     |
+| `scheduled_time`    | TIMESTAMP                               | If status is 'scheduled'                          |
+| `created_at`        | TIMESTAMP                               | Creation time                                     |
+| `created_at`        | TIMESTAMP                               | Creation time                                     |
+| `updated_at`        | TIMESTAMP                               | Last edit time                                    |
+| `ai_context_source` | TEXT                                    | (Optional) Original source text if AI generated   |
 
 ### 4. PostTargets
 
@@ -62,16 +64,19 @@ Links a Post to specific platforms (e.g., a post meant for both LinkedIn and Ins
 
 Stores images and videos used in posts.
 
-| Column       | Type                   | Description                             |
-| :----------- | :--------------------- | :-------------------------------------- |
-| `id`         | UUID / INT             | Primary Key                             |
-| `user_id`    | FK -> Users.id         | Uploader                                |
-| `post_id`    | FK -> Posts.id         | (Optional) Associated post              |
-| `url`        | VARCHAR                | URL to file storage (S3/Cloudinary/etc) |
-| `type`       | ENUM('image', 'video') | Media type                              |
-| `filename`   | VARCHAR                | Original filename                       |
-| `size_bytes` | INT                    | File size                               |
-| `created_at` | TIMESTAMP              | Upload time                             |
+| Column         | Type                   | Description                              |
+| :------------- | :--------------------- | :--------------------------------------- |
+| `id`           | UUID / INT             | Primary Key                              |
+| `user_id`      | FK -> Users.id         | Uploader                                 |
+| `post_id`      | FK -> Posts.id         | (Optional) Associated post               |
+| `url`          | VARCHAR                | URL to file storage (S3/Cloudinary/etc)  |
+| `type`         | ENUM('image', 'video') | Media type                               |
+| `filename`     | VARCHAR                | Original filename                        |
+| `prompt`       | TEXT                   | (Optional) AI prompt used to generate    |
+| `ai_model`     | VARCHAR                | (Optional) AI model used (e.g. dall-e-3) |
+| `is_generated` | BOOLEAN                | True if AI generated, False if uploaded  |
+| `size_bytes`   | INT                    | File size                                |
+| `created_at`   | TIMESTAMP              | Upload time                              |
 
 ### 6. Analytics
 
@@ -86,6 +91,18 @@ Stores performance metrics for published posts.
 | `comments`       | INT                  | Comment count                       |
 | `shares`         | INT                  | Share/Repost count                  |
 | `fetched_at`     | TIMESTAMP            | When this data was last updated     |
+
+### 7. UserUsage
+
+Tracks AI usage quotas for users.
+
+| Column                    | Type        | Description                            |
+| :------------------------ | :---------- | :------------------------------------- |
+| `id`                      | UUID / INT  | Primary Key                            |
+| `user_id`                 | FK -> Users | The user being tracked                 |
+| `image_generations_count` | INT         | Total DALL-E images generated in cycle |
+| `text_generations_count`  | INT         | Total GPT posts generated in cycle     |
+| `cycle_start_date`        | TIMESTAMP   | Start of current billing/usage cycle   |
 
 ## Relationships
 
