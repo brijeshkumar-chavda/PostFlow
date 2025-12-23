@@ -264,19 +264,7 @@ export function SchedulePostModal({
                   )}
                 </div>
               </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-slate-900 dark:text-slate-200 text-sm font-medium">
-                  Time Zone
-                </span>
-                <div className="relative">
-                  <select className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white h-11 px-3 focus:ring-2 focus:ring-primary focus:border-primary appearance-none border outline-none transition-all pr-10">
-                    <option>(UTC-05:00) Eastern Time</option>
-                    <option>(UTC-08:00) Pacific Time</option>
-                    <option>(UTC+00:00) London</option>
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none h-5 w-5" />
-                </div>
-              </label>
+              {/* Time Zone selection removed */}
             </div>
 
             {/* AI Suggestion */}
