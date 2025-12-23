@@ -46,6 +46,7 @@ import { EmojiStyle, Theme } from "emoji-picker-react";
 import { useTheme } from "next-themes";
 import { MediaThumbnail } from "@/components/media-thumbnail";
 import { MediaPreviewModal } from "@/components/media-preview-modal";
+import { SchedulePostModal } from "@/components/schedule-post-modal";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
@@ -69,14 +70,30 @@ export default function ComposerPage() {
   const [magicTopic, setMagicTopic] = useState("");
   const [isMagicGenerating, setIsMagicGenerating] = useState(false);
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
-  const [isMediaGeneratorOpen, setIsMediaGeneratorOpen] = useState(false); // Valid definition
+  const [isMediaGeneratorOpen, setIsMediaGeneratorOpen] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
 
   // Helper to format text with hashtags and mentions
   const formatText = (text: string, platform: "linkedin" | "instagram") => {
     if (!text)
       return platform === "linkedin" ? "Start writing to preview..." : "";
 
-    // Basic XSS protection (in a real app, use DOMPurify)
+    // Check if the text is already HTML (Tiptap can return HTML)
+    // If it contains things like <p>, assume it's HTML and extract text or handle simpler
+    // For now, let's assume we want to preserve line breaks but strip other complex HTML
+    // OR if we are treating input as plain text that just happens to have HTML entities.
+
+    // Simple fix: If text seems to just be text, just escape it.
+    // However, the issue described "generated post content in the demo preview but it's in HTML format"
+    // implies we are seeing raw tag text like "<p>Hello</p>" in the div.
+    // This happens if we double escape.
+
+    // Let's assume input 'text' is raw text (e.g. from editor.getText()).
+    // If it's already HTML (from editor.getHTML()), we shouldn't escape tags we want to keep.
+
+    // Since we use editor?.getText() in other places, let's stick to text.
+    // But formatText does escaping.
+
     let formatted = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -510,8 +527,8 @@ export default function ComposerPage() {
     content: "",
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
-      // For preview, we use HTML to reflect formatting
-      setContent(editor.getHTML());
+      // Use getText() for social media captions (plain text)
+      setContent(editor.getText());
     },
     editorProps: {
       attributes: {
@@ -548,7 +565,10 @@ export default function ComposerPage() {
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3 border-l border-gray-200 dark:border-[#1e293b] pl-6">
-            <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white hover:bg-opacity-90 transition-all text-sm font-bold leading-normal tracking-[0.015em] shadow-[0_0_15px_rgba(10,102,194,0.3)]">
+            <button
+              onClick={() => setIsScheduleModalOpen(true)}
+              className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-white hover:bg-opacity-90 transition-all text-sm font-bold leading-normal tracking-[0.015em] shadow-[0_0_15px_rgba(10,102,194,0.3)]"
+            >
               <span className="truncate">Schedule Post</span>
               <Calendar className="h-4 w-4 ml-2" />
             </button>
@@ -1123,6 +1143,14 @@ export default function ComposerPage() {
           onSave={handleSaveMedia}
         />
       )}
+
+      {/* Schedule Post Modal */}
+      <SchedulePostModal
+        isOpen={isScheduleModalOpen}
+        onClose={() => setIsScheduleModalOpen(false)}
+        selectedPreviewMedia={mediaFiles[0] || null}
+        postContent={content}
+      />
 
       {/* Magic Post Modal */}
       {isMagicPostOpen && (
