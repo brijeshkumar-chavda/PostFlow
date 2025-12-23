@@ -826,22 +826,6 @@ export default function ComposerPage() {
               {previewPlatform === "linkedin" ? (
                 /* LinkedIn Mobile */
                 <div className="flex-1 flex flex-col bg-[#F3F2EF] dark:bg-black overflow-y-auto custom-scrollbar">
-                  {/* LinkedIn Header */}
-                  <div className="bg-white dark:bg-[#1b1f23] px-3 py-2 flex items-center justify-between shrink-0">
-                    <div className="size-8 rounded-full bg-slate-200">
-                      {/* Avatar Placeholder */}
-                      <img
-                        src="https://ui-avatars.com/api/?name=Jane+Doe&background=random"
-                        className="rounded-full"
-                        alt="Profile"
-                      />
-                    </div>
-                    <div className="flex-1 mx-3 bg-[#EEF3F8] dark:bg-gray-800 rounded-md h-8 flex items-center px-2">
-                      <span className="text-xs text-slate-500">Search</span>
-                    </div>
-                    <MessageSquare className="text-slate-600 dark:text-slate-300 h-6 w-6" />
-                  </div>
-
                   {/* Feed Post */}
                   <div className="bg-white dark:bg-[#1b1f23] mt-2 pb-2">
                     {/* Post Header */}
@@ -939,12 +923,6 @@ export default function ComposerPage() {
               ) : (
                 /* Instagram Mobile */
                 <div className="flex-1 flex flex-col bg-white dark:bg-black overflow-y-auto custom-scrollbar">
-                  {/* IG Header */}
-                  <div className="flex items-center justify-center h-11 border-b border-gray-100 dark:border-gray-800 shrink-0 relative">
-                    <span className="font-bold text-base">Posts</span>
-                    <ChevronRight className="absolute right-3 h-6 w-6 rotate-90 opacity-0" />
-                  </div>
-
                   {/* Post Header */}
                   <div className="flex items-center justify-between px-3 py-2">
                     <div className="flex items-center gap-2">
