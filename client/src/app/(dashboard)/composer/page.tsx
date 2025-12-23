@@ -58,6 +58,8 @@ export default function ComposerPage() {
   const [content, setContent] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const linkedinCarouselRef = useRef<HTMLDivElement>(null);
+  const instagramCarouselRef = useRef<HTMLDivElement>(null);
 
   const emojiPickerContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -109,26 +111,35 @@ export default function ComposerPage() {
   const [generatedFilePreviewUrl, setGeneratedFilePreviewUrl] = useState<
     string | null
   >(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   useEffect(() => {
-    let url: string | null = null;
+    const urls = mediaFiles.map((file) => URL.createObjectURL(file));
 
-    if (selectedPreviewMedia) {
-      url = URL.createObjectURL(selectedPreviewMedia);
-      setPreviewUrl(url);
-    } else if (mediaFiles.length > 0) {
-      // Default to the first file if none selected
-      url = URL.createObjectURL(mediaFiles[0]);
-      setPreviewUrl(url);
-    } else {
-      setPreviewUrl(null);
+    if (urls.length === 0 && selectedPreviewMedia) {
+      // Fallback or explicit selection handling if needed,
+      // but generally mediaFiles is the source.
+      // For now, if mediaFiles is empty but selected exists (edge case?), do nothing.
     }
+    setPreviewUrls(urls);
 
     return () => {
-      if (url) URL.revokeObjectURL(url);
+      urls.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, [selectedPreviewMedia, mediaFiles]);
+  }, [mediaFiles]);
+
+  const scrollCarousel = (
+    ref: React.RefObject<HTMLDivElement>,
+    direction: "left" | "right"
+  ) => {
+    if (ref.current) {
+      const scrollAmount = ref.current.clientWidth;
+      ref.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   const handleSaveMedia = (originalFile: File, newFile: File) => {
     setMediaFiles((prev) =>
@@ -789,10 +800,10 @@ export default function ComposerPage() {
 
         {/* Live Preview Pane */}
         <aside className="hidden xl:flex w-[480px] bg-gray-100 dark:bg-[#0b0d14] flex-col shrink-0 border-l border-gray-200 dark:border-[#1e293b]">
-          <div className="px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-[#1e293b]">
-            <h3 className="font-medium text-slate-700 dark:text-white">
-              Live Preview
-            </h3>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1e293b] min-h-[60px]">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-gray-300">
+              Preview
+            </h2>
           </div>
 
           <div className="flex px-6 pt-4 pb-2 gap-6 border-b border-gray-200 dark:border-[#1e293b]">
@@ -859,22 +870,64 @@ export default function ComposerPage() {
                       }}
                     />
 
-                    {/* Media */}
-                    {previewUrl ? (
-                      <div className="mt-2 w-full">
-                        {previewUrl.includes("video") ||
-                        selectedPreviewMedia?.type.startsWith("video") ? (
-                          <video
-                            src={previewUrl}
-                            className="w-full h-auto max-h-[400px] object-cover"
-                            controls
-                          />
-                        ) : (
-                          <img
-                            src={previewUrl}
-                            className="w-full h-auto object-cover"
-                            alt="Content"
-                          />
+                    {/* Media Carousel */}
+                    {previewUrls.length > 0 ? (
+                      <div className="mt-2 w-full relative group">
+                        <div
+                          ref={linkedinCarouselRef}
+                          className="w-full flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+                          style={{
+                            scrollbarWidth: "none",
+                            msOverflowStyle: "none",
+                          }}
+                        >
+                          {previewUrls.map((url, index) => (
+                            <div
+                              key={url}
+                              className="w-full flex-shrink-0 snap-center relative"
+                            >
+                              {mediaFiles[index]?.type.startsWith("video") ? (
+                                <video
+                                  src={url}
+                                  className="w-full h-auto max-h-[400px] object-cover"
+                                  controls
+                                />
+                              ) : (
+                                <img
+                                  src={url}
+                                  className="w-full h-auto object-cover"
+                                  alt={`Content ${index + 1}`}
+                                />
+                              )}
+                              {/* Optional Counter for LinkedIn */}
+                              {previewUrls.length > 1 && (
+                                <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] px-2 py-1 rounded-full select-none">
+                                  {index + 1}/{previewUrls.length}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {/* Navigation Arrows */}
+                        {previewUrls.length > 1 && (
+                          <>
+                            <button
+                              onClick={() =>
+                                scrollCarousel(linkedinCarouselRef, "left")
+                              }
+                              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                            >
+                              <ChevronRight className="h-4 w-4 rotate-180" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                scrollCarousel(linkedinCarouselRef, "right")
+                              }
+                              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </button>
+                          </>
                         )}
                       </div>
                     ) : (
@@ -938,25 +991,76 @@ export default function ComposerPage() {
                     <MoreHorizontal className="h-5 w-5" />
                   </div>
 
-                  {/* Media (Square or 4:5) */}
-                  <div className="w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
-                    {previewUrl ? (
-                      selectedPreviewMedia?.type.startsWith("video") ? (
-                        <video
-                          src={previewUrl}
-                          className="w-full h-auto max-h-[470px] object-cover"
-                          controls
-                        />
-                      ) : (
-                        <img
-                          src={previewUrl}
-                          className="w-full h-auto object-cover"
-                          alt="IG Content"
-                        />
-                      )
+                  {/* Media (Carousel) */}
+                  <div className="w-full bg-slate-100 dark:bg-slate-900 overflow-hidden relative group">
+                    {previewUrls.length > 0 ? (
+                      <div
+                        ref={instagramCarouselRef}
+                        className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar"
+                        style={{
+                          scrollbarWidth: "none",
+                          msOverflowStyle: "none",
+                        }}
+                      >
+                        {previewUrls.map((url, index) => (
+                          <div
+                            key={url}
+                            className="w-full flex-shrink-0 snap-center relative aspect-square bg-black flex items-center justify-center"
+                          >
+                            {mediaFiles[index]?.type.startsWith("video") ? (
+                              <video
+                                src={url}
+                                className="w-full h-full object-cover"
+                                controls
+                              />
+                            ) : (
+                              <img
+                                src={url}
+                                className="w-full h-full object-cover"
+                                alt={`IG Content ${index + 1}`}
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       <div className="aspect-square flex items-center justify-center text-slate-400 text-sm">
                         No media
+                      </div>
+                    )}
+
+                    {/* Navigation Arrows */}
+                    {previewUrls.length > 1 && (
+                      <>
+                        <button
+                          onClick={() =>
+                            scrollCarousel(instagramCarouselRef, "left")
+                          }
+                          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                        >
+                          <ChevronRight className="h-4 w-4 rotate-180" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            scrollCarousel(instagramCarouselRef, "right")
+                          }
+                          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-slate-800 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all shadow-md z-10"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </>
+                    )}
+                    {/* Pagination Dots for Instagram */}
+                    {previewUrls.length > 1 && (
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-1.5 pointer-events-none">
+                        {previewUrls.map((_, dotIndex) => (
+                          <div
+                            key={dotIndex}
+                            className={`w-1.5 h-1.5 rounded-full shadow-sm transition-colors ${
+                              dotIndex === 0 ? "bg-white" : "bg-white/50" // Simple logic: highlight first for now since we can't easily track scroll position without more state
+                            }`}
+                          />
+                        ))}
                       </div>
                     )}
                   </div>
