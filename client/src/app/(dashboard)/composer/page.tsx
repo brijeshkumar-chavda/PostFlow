@@ -67,7 +67,36 @@ export default function ComposerPage() {
   const [magicTopic, setMagicTopic] = useState("");
   const [isMagicGenerating, setIsMagicGenerating] = useState(false);
   const [isHashtagsLoading, setIsHashtagsLoading] = useState(false);
-  const [isMediaGeneratorOpen, setIsMediaGeneratorOpen] = useState(false);
+  const [isMediaGeneratorOpen, setIsMediaGeneratorOpen] = useState(false); // Valid definition
+
+  // Helper to format text with hashtags and mentions
+  const formatText = (text: string, platform: "linkedin" | "instagram") => {
+    if (!text)
+      return platform === "linkedin" ? "Start writing to preview..." : "";
+
+    // Basic XSS protection (in a real app, use DOMPurify)
+    let formatted = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+
+    // Format hashtags and mentions
+    formatted = formatted.replace(
+      /([#@][\w\u0590-\u05ff]+)/g,
+      '<span class="text-[#0a66c2] dark:text-[#70b5f9] hover:underline cursor-pointer font-medium">$1</span>'
+    );
+
+    // Platform specific tweaks
+    if (platform === "instagram") {
+      formatted = formatted.replace(
+        /([#@][\w\u0590-\u05ff]+)/g,
+        '<span class="text-[#00376b] dark:text-[#e0f1ff] cursor-pointer">$1</span>'
+      );
+    }
+
+    // Convert newlines to breaks
+    return formatted.replace(/\n/g, "<br />");
+  };
   const [mediaGenType, setMediaGenType] = useState<"image" | "video">("image");
   const [mediaPrompt, setMediaPrompt] = useState("");
   const [isGeneratingMedia, setIsGeneratingMedia] = useState(false);
@@ -371,7 +400,27 @@ export default function ComposerPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      setMediaFiles((prev) => [...prev, ...newFiles]);
+      const remainingSlots = 20 - mediaFiles.length;
+
+      if (remainingSlots <= 0) {
+        alert("You have reached the maximum limit of 20 media files.");
+        e.target.value = ""; // Reset the value even if no files are added
+        return;
+      }
+
+      if (newFiles.length > remainingSlots) {
+        alert(
+          `You can only add ${remainingSlots} more file${
+            remainingSlots === 1 ? "" : "s"
+          }. The rest were ignored.`
+        );
+        setMediaFiles((prev) => [
+          ...prev,
+          ...newFiles.slice(0, remainingSlots),
+        ]);
+      } else {
+        setMediaFiles((prev) => [...prev, ...newFiles]);
+      }
       // Reset the value to allow selecting the same file again
       e.target.value = "";
     }
@@ -396,8 +445,31 @@ export default function ComposerPage() {
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newFiles = Array.from(e.dataTransfer.files);
-      setMediaFiles((prev) => [...prev, ...newFiles]);
+      const newFiles = Array.from(e.dataTransfer.files).filter(
+        (file) =>
+          file.type.startsWith("image/") || file.type.startsWith("video/")
+      );
+
+      const remainingSlots = 20 - mediaFiles.length;
+
+      if (remainingSlots <= 0) {
+        alert("You have reached the maximum limit of 20 media files.");
+        return;
+      }
+
+      if (newFiles.length > remainingSlots) {
+        alert(
+          `You can only add ${remainingSlots} more file${
+            remainingSlots === 1 ? "" : "s"
+          }. The rest were ignored.`
+        );
+        setMediaFiles((prev) => [
+          ...prev,
+          ...newFiles.slice(0, remainingSlots),
+        ]);
+      } else {
+        setMediaFiles((prev) => [...prev, ...newFiles]);
+      }
     }
   };
 
@@ -610,12 +682,23 @@ export default function ComposerPage() {
               <div className="flex justify-between items-center">
                 <label className="text-sm font-semibold text-slate-700 dark:text-gray-300 flex items-center gap-2">
                   Media Assets
-                  {mediaFiles.length > 0 && (
-                    <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
-                      {mediaFiles.length} file
-                      {mediaFiles.length !== 1 ? "s" : ""} selected
+                  <div className="group relative">
+                    <span
+                      className={cn(
+                        "text-xs px-2 py-0.5 rounded-full cursor-help",
+                        mediaFiles.length >= 20
+                          ? "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
+                          : "bg-primary/10 text-primary"
+                      )}
+                    >
+                      {20 - mediaFiles.length} remaining
                     </span>
-                  )}
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-md w-48 text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 invisible group-hover:visible">
+                      Most social platforms (LinkedIn, Instagram) limit posts to
+                      20 media items.
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-slate-900"></div>
+                    </div>
+                  </div>
                 </label>
                 <div className="flex gap-2">
                   <button
@@ -708,7 +791,7 @@ export default function ComposerPage() {
         <aside className="hidden xl:flex w-[480px] bg-gray-100 dark:bg-[#0b0d14] flex-col shrink-0 border-l border-gray-200 dark:border-[#1e293b]">
           <div className="px-6 py-4 flex items-center justify-between border-b border-gray-200 dark:border-[#1e293b]">
             <h3 className="font-medium text-slate-700 dark:text-white">
-              Mobile Preview
+              Live Preview
             </h3>
           </div>
 
@@ -738,20 +821,8 @@ export default function ComposerPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-gray-100 dark:bg-[#0b0d14]">
-            {/* Mobile Mockup Container */}
-            <div className="w-[375px] bg-white dark:bg-black rounded-[30px] border-[8px] border-gray-900 dark:border-gray-800 shadow-xl overflow-hidden relative h-[812px] flex flex-col shrink-0">
-              {/* Dynamic Status Bar */}
-              <div className="h-7 bg-white dark:bg-black w-full flex items-center justify-between px-6 shrink-0 z-20">
-                <span className="text-[10px] font-semibold text-slate-900 dark:text-white">
-                  9:41
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-3 h-3 bg-slate-900 dark:bg-white rounded-full opacity-20"></div>
-                  <div className="w-3 h-3 bg-slate-900 dark:bg-white rounded-full opacity-20"></div>
-                  <div className="w-4 h-2.5 border border-slate-900 dark:border-white rounded-sm opacity-40"></div>
-                </div>
-              </div>
-
+            {/* Mobile Mockup Container - Frame Removed */}
+            <div className="w-[375px] bg-white dark:bg-black border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden relative h-[812px] flex flex-col shrink-0">
               {previewPlatform === "linkedin" ? (
                 /* LinkedIn Mobile */
                 <div className="flex-1 flex flex-col bg-[#F3F2EF] dark:bg-black overflow-y-auto custom-scrollbar">
@@ -782,15 +853,15 @@ export default function ComposerPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold text-slate-900 dark:text-white">
+                          <h4 className="text-sm font-semibold text-[#191919] dark:text-white leading-tight">
                             Jane Doe
                           </h4>
                           <MoreHorizontal className="h-5 w-5 text-slate-600" />
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate leading-tight">
                           Marketing Strategist
                         </p>
-                        <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                        <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-0.5">
                           <span>1h • </span> <Globe className="h-3 w-3" />
                         </div>
                       </div>
@@ -798,9 +869,9 @@ export default function ComposerPage() {
 
                     {/* Content */}
                     <div
-                      className="px-3 py-1 text-sm text-slate-900 dark:text-white leading-normal whitespace-pre-wrap"
+                      className="px-3 py-1 text-[14px] text-[#191919] dark:text-white leading-[1.4] whitespace-pre-wrap break-words font-[system-ui]"
                       dangerouslySetInnerHTML={{
-                        __html: content || "Start writing to preview...",
+                        __html: formatText(content, "linkedin"),
                       }}
                     />
 
@@ -823,8 +894,8 @@ export default function ComposerPage() {
                         )}
                       </div>
                     ) : (
-                      <div className="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-48 flex items-center justify-center text-slate-400 text-xs">
-                        No media
+                      <div className="mt-2 w-full bg-slate-100 dark:bg-slate-800 h-48 flex items-center justify-center text-slate-400 text-xs text-center border-y border-gray-100 dark:border-gray-800">
+                        Image / Video Preview
                       </div>
                     )}
 
@@ -882,7 +953,7 @@ export default function ComposerPage() {
                         className="size-8 rounded-full border border-gray-200"
                         alt="Profile"
                       />
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <span className="text-sm font-semibold text-[#262626] dark:text-white">
                         janedoe_marketing
                       </span>
                     </div>
@@ -892,10 +963,7 @@ export default function ComposerPage() {
                   {/* Media (Square or 4:5) */}
                   <div className="w-full bg-slate-100 dark:bg-slate-900 overflow-hidden">
                     {previewUrl ? (
-                      content &&
-                      !previewUrl ? null : selectedPreviewMedia?.type.startsWith(
-                          "video"
-                        ) ? (
+                      selectedPreviewMedia?.type.startsWith("video") ? (
                         <video
                           src={previewUrl}
                           className="w-full h-auto max-h-[470px] object-cover"
@@ -918,12 +986,11 @@ export default function ComposerPage() {
                   {/* Action Bar */}
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <div className="flex items-center gap-4">
-                      <Heart className="h-6 w-6 text-slate-900 dark:text-white" />
-                      <MessageSquare className="h-6 w-6 text-slate-900 dark:text-white -rotate-90" />
-                      <Send className="h-6 w-6 text-slate-900 dark:text-white" />
+                      <Heart className="h-6 w-6 text-[#262626] dark:text-white" />
+                      <MessageSquare className="h-6 w-6 text-[#262626] dark:text-white -rotate-90" />
+                      <Send className="h-6 w-6 text-[#262626] dark:text-white" />
                     </div>
                     <div>
-                      {/* Bookmark Icon replacement since we might not have it imported */}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24"
@@ -934,7 +1001,7 @@ export default function ComposerPage() {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="lucide lucide-bookmark h-6 w-6"
+                        className="lucide lucide-bookmark h-6 w-6 text-[#262626] dark:text-white"
                       >
                         <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
                       </svg>
@@ -942,20 +1009,22 @@ export default function ComposerPage() {
                   </div>
 
                   {/* Likes */}
-                  <div className="px-3 text-sm font-semibold text-slate-900 dark:text-white mb-1">
+                  <div className="px-3 text-sm font-semibold text-[#262626] dark:text-white mb-1">
                     24 likes
                   </div>
 
                   {/* Caption */}
                   <div className="px-3 pb-4">
-                    <p className="text-sm text-slate-900 dark:text-white leading-normal">
-                      <span className="font-semibold mr-2">
+                    <div className="text-[14px] text-[#262626] dark:text-white leading-[1.25]">
+                      <span className="font-semibold mr-1">
                         janedoe_marketing
                       </span>
                       <span
-                        dangerouslySetInnerHTML={{ __html: content || "" }}
+                        dangerouslySetInnerHTML={{
+                          __html: formatText(content, "instagram"),
+                        }}
                       ></span>
-                    </p>
+                    </div>
                     <div className="mt-1 text-xs text-slate-400">
                       View all 2 comments
                     </div>
@@ -965,9 +1034,6 @@ export default function ComposerPage() {
                   </div>
                 </div>
               )}
-
-              {/* Home Indicator */}
-              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-900/20 dark:bg-white/20 rounded-full z-20"></div>
             </div>
           </div>
         </aside>
