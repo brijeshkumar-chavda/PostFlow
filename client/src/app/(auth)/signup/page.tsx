@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Sparkles, Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
 import { authService } from "@/lib/auth/auth-service";
@@ -17,15 +17,46 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function onEmailSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    setError(null);
+    setIsSuccess(false);
+
+    try {
+      const response = await fetch("http://localhost:5214/api/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          password,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.text();
+        throw new Error(data || "Failed to create account");
+      }
+
+      setIsSuccess(true);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "An unexpected error occurred");
+    } finally {
       setIsLoading(false);
-      alert("Account creation simulation successful!");
-    }, 2000);
+    }
   }
 
   const handleSocialSignup = (provider: "google" | "linkedin" | "facebook") => {
@@ -74,131 +105,158 @@ export default function SignupPage() {
       </div>
 
       <form onSubmit={onEmailSubmit} className="mt-8 space-y-6">
-        <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+        {/* Success/Error Feedback */}
+        {error && (
+          <div className="p-3 bg-red-50 text-red-500 rounded-lg text-sm border border-red-200">
+            {error}
+          </div>
+        )}
+
+        {isSuccess ? (
+          <div className="rounded-lg bg-green-50 p-4 border border-green-200 text-center">
+            <h3 className="text-sm font-medium text-green-800">
+              Account created successfully!
+            </h3>
+            <div className="mt-2 text-sm text-green-700">
+              <p>Your account is created now you can go to the login screen.</p>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/login"
+                className="block w-full rounded-md bg-green-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+              >
+                Go to Login
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label
+                  htmlFor="firstName"
+                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+                >
+                  First Name
+                </label>
+                <div className="mt-2 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
+                    {mounted && <User className="h-5 w-5" />}
+                  </div>
+                  <input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    placeholder="John"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
+                  />
+                </div>
+              </div>
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
+                >
+                  Last Name
+                </label>
+                <div className="mt-2 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
+                    <User className="h-5 w-5" />
+                  </div>
+                  <input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    placeholder="Doe"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
               <label
-                htmlFor="firstName"
+                htmlFor="email"
                 className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
-                First Name
+                Email address
               </label>
               <div className="mt-2 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
-                  <User className="h-5 w-5" />
+                  {mounted && <Mail className="h-5 w-5" />}
                 </div>
                 <input
-                  id="firstName"
-                  name="firstName"
-                  type="text"
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
-                  placeholder="John"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="name@company.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
                 />
               </div>
             </div>
+
             <div>
               <label
-                htmlFor="lastName"
+                htmlFor="password"
                 className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
               >
-                Last Name
+                Password
               </label>
               <div className="mt-2 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
-                  <User className="h-5 w-5" />
+                  {mounted && <Lock className="h-5 w-5" />}
                 </div>
                 <input
-                  id="lastName"
-                  name="lastName"
-                  type="text"
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="new-password"
                   required
-                  placeholder="Doe"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="block w-full rounded-lg border-0 py-3 pl-10 pr-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-text-secondary hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                >
+                  {mounted &&
+                    (showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    ))}
+                </button>
               </div>
             </div>
-          </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
-            >
-              Email address
-            </label>
-            <div className="mt-2 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
-                <Mail className="h-5 w-5" />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                placeholder="name@company.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-lg border-0 py-3 pl-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium leading-6 text-gray-900 dark:text-white"
-            >
-              Password
-            </label>
-            <div className="mt-2 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-text-secondary">
-                <Lock className="h-5 w-5" />
-              </div>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                autoComplete="new-password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-lg border-0 py-3 pl-10 pr-10 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-300 dark:ring-border-dark placeholder:text-gray-400 dark:placeholder:text-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:bg-surface-dark sm:text-sm sm:leading-6 transition-all"
-              />
+            <div>
               <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 dark:text-text-secondary hover:text-gray-600 dark:hover:text-white cursor-pointer"
+                type="submit"
+                disabled={isLoading}
+                className="flex w-full justify-center rounded-lg bg-primary px-3 py-3.5 text-sm font-bold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors disabled:opacity-50"
               >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5" />
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : (
-                  <Eye className="h-5 w-5" />
+                  "Create Account"
                 )}
               </button>
             </div>
           </div>
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex w-full justify-center rounded-lg bg-primary px-3 py-3.5 text-sm font-bold leading-6 text-white shadow-sm hover:bg-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary transition-colors disabled:opacity-50"
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              "Create Account"
-            )}
-          </button>
-        </div>
+        )}
       </form>
 
       <div className="relative">

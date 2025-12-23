@@ -19,8 +19,8 @@ public class User
 
     // Navigation properties
     public List<SocialAccount> SocialAccounts { get; set; } = new();
-    public List<Post> Posts { get; set; } = new();
-    public List<MediaAsset> MediaAssets { get; set; } = new();
+    // public List<Post> Posts { get; set; } = new();
+    // public List<MediaAsset> MediaAssets { get; set; } = new();
     public UserUsage? UserUsage { get; set; }
 }
 

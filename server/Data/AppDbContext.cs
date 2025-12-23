@@ -32,11 +32,11 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         // User -> Posts
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Posts)
-            .WithOne(p => p.User)
-            .HasForeignKey(p => p.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // modelBuilder.Entity<User>()
+        //     .HasMany(u => u.Posts)
+        //     .WithOne(p => p.User)
+        //     .HasForeignKey(p => p.UserId)
+        //     .OnDelete(DeleteBehavior.Cascade);
 
         // Post -> PostTargets
         modelBuilder.Entity<Post>()
@@ -53,11 +53,11 @@ public class AppDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         // User -> MediaAssets
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.MediaAssets)
-            .WithOne(ma => ma.User)
-            .HasForeignKey(ma => ma.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+        // modelBuilder.Entity<User>()
+        //     .HasMany(u => u.MediaAssets)
+        //     .WithOne(ma => ma.User)
+        //     .HasForeignKey(ma => ma.UserId)
+        //     .OnDelete(DeleteBehavior.Cascade);
             
         // Post -> MediaAssets (Optional relationship)
         modelBuilder.Entity<MediaAsset>()

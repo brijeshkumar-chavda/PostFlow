@@ -10,11 +10,12 @@ import {
   PlusCircle,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
@@ -23,6 +24,12 @@ export default function DashboardLayout({
 }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Add logout logic here (e.g., clear tokens, cookies)
+    router.push("/login");
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -86,6 +93,13 @@ export default function DashboardLayout({
                 </Link>
               );
             })}
+            <button
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-[#1e40af] hover:text-slate-900 dark:hover:text-white transition-all"
+            >
+              <LogOut className="h-5 w-5 text-slate-500 dark:text-text-secondary group-hover:text-slate-900 dark:group-hover:text-white" />
+              <span className="text-sm font-medium leading-normal">Logout</span>
+            </button>
           </nav>
         </div>
 
@@ -144,6 +158,16 @@ export default function DashboardLayout({
                 </span>
               </Link>
             ))}
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                handleLogout();
+              }}
+              className="flex w-full items-center gap-3 px-3 py-3 rounded-lg text-slate-600 dark:text-text-secondary hover:bg-gray-100 dark:hover:bg-[#1e40af] hover:text-slate-900 dark:hover:text-white transition-all"
+            >
+              <LogOut className="h-5 w-5 text-slate-500 dark:text-text-secondary group-hover:text-slate-900 dark:group-hover:text-white" />
+              <span className="text-sm font-medium leading-normal">Logout</span>
+            </button>
           </nav>
           <div className="mt-auto">
             <button className="flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-wide hover:brightness-110 transition-all shadow-[0_0_15px_rgba(59,130,246,0.4)]">

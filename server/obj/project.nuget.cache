@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "FOon8QLUYcM=",
+  "dgSpecHash": "TMfG2Jd7Iw8=",
   "success": true,
   "projectFilePath": "/home/brijesh/Documents/projects/CrossPlatformPostApp/server/CrossPlatformPostApp.Server.csproj",
   "expectedPackageFiles": [
@@ -34,6 +34,7 @@
     "/home/brijesh/.nuget/packages/mono.texttemplating/3.0.0/mono.texttemplating.3.0.0.nupkg.sha512",
     "/home/brijesh/.nuget/packages/npgsql/9.0.2/npgsql.9.0.2.nupkg.sha512",
     "/home/brijesh/.nuget/packages/npgsql.entityframeworkcore.postgresql/9.0.2/npgsql.entityframeworkcore.postgresql.9.0.2.nupkg.sha512",
+    "/home/brijesh/.nuget/packages/scalar.aspnetcore/2.11.9/scalar.aspnetcore.2.11.9.nupkg.sha512",
     "/home/brijesh/.nuget/packages/system.codedom/6.0.0/system.codedom.6.0.0.nupkg.sha512",
     "/home/brijesh/.nuget/packages/system.collections.immutable/7.0.0/system.collections.immutable.7.0.0.nupkg.sha512",
     "/home/brijesh/.nuget/packages/system.composition/7.0.0/system.composition.7.0.0.nupkg.sha512",

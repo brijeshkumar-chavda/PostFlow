@@ -1,11 +1,20 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useState, useEffect } from "react";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
     <div className="flex min-h-screen w-full relative">
       <div className="absolute top-4 right-4 z-50">
@@ -20,7 +29,7 @@ export default function AuthLayout({
 
         <div className="relative z-10 flex items-center gap-3 text-white mb-10">
           <div className="size-8 flex items-center justify-center rounded bg-primary/20 text-primary">
-            <Sparkles className="h-5 w-5 fill-current" />
+            {mounted && <Sparkles className="h-5 w-5 fill-current" />}
           </div>
           <h2 className="text-white text-xl font-bold tracking-tight">
             PostFlow AI
