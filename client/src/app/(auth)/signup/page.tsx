@@ -70,7 +70,7 @@ export default function SignupPage() {
       <div className="lg:hidden flex justify-center mb-6">
         <div className="flex items-center gap-2">
           <div className="size-8 flex items-center justify-center rounded bg-primary/20 text-primary">
-            <Sparkles className="h-5 w-5 fill-current" />
+            {mounted && <Sparkles className="h-5 w-5 fill-current" />}
           </div>
           <h2 className="text-black dark:text-white text-xl font-bold">
             PostFlow AI

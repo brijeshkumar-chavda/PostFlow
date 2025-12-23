@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CrossPlatformPostApp.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251223053537_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251223081926_UpdateUserModel")]
+    partial class UpdateUserModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -233,7 +233,11 @@ namespace CrossPlatformPostApp.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -293,7 +297,7 @@ namespace CrossPlatformPostApp.Server.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CrossPlatformPostApp.Server.Models.User", "User")
-                        .WithMany("MediaAssets")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -306,7 +310,7 @@ namespace CrossPlatformPostApp.Server.Migrations
             modelBuilder.Entity("CrossPlatformPostApp.Server.Models.Post", b =>
                 {
                     b.HasOne("CrossPlatformPostApp.Server.Models.User", "User")
-                        .WithMany("Posts")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -374,10 +378,6 @@ namespace CrossPlatformPostApp.Server.Migrations
 
             modelBuilder.Entity("CrossPlatformPostApp.Server.Models.User", b =>
                 {
-                    b.Navigation("MediaAssets");
-
-                    b.Navigation("Posts");
-
                     b.Navigation("SocialAccounts");
 
                     b.Navigation("UserUsage");
