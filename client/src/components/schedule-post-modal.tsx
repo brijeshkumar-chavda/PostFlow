@@ -36,7 +36,7 @@ export function SchedulePostModal({
   onConfirm?: (date: Date) => Promise<void>;
   isSubmitting?: boolean;
 }) {
-  const [time, setTime] = React.useState("10:00");
+  const [time, setTime] = React.useState("10:00:00");
   const [format, setFormat] = React.useState<"12h" | "24h">("24h");
   const [period, setPeriod] = React.useState<"AM" | "PM">("AM");
 
@@ -44,22 +44,24 @@ export function SchedulePostModal({
   const toggleFormat = () => {
     if (format === "24h") {
       // Convert 24h to 12h
-      const [vp, mp] = time.split(":");
+      const [vp, mp, sp] = time.split(":");
       let h = parseInt(vp || "0", 10);
       const m = mp || "00";
+      const s = sp || "00";
       const p = h >= 12 ? "PM" : "AM";
       h = h % 12 || 12;
-      setTime(`${h}:${m}`);
+      setTime(`${h}:${m}:${s}`);
       setPeriod(p);
       setFormat("12h");
     } else {
       // Convert 12h to 24h
-      const [vp, mp] = time.split(":");
+      const [vp, mp, sp] = time.split(":");
       let h = parseInt(vp || "0", 10);
       const m = mp || "00";
+      const s = sp || "00";
       if (period === "PM" && h !== 12) h += 12;
       if (period === "AM" && h === 12) h = 0;
-      setTime(`${h.toString().padStart(2, "0")}:${m}`);
+      setTime(`${h.toString().padStart(2, "0")}:${m}:${s}`);
       setFormat("24h");
     }
   };
@@ -75,16 +77,17 @@ export function SchedulePostModal({
     // In a real app, use selected Date from calendar
     const date = new Date(2023, 9, 5); // Month is 0-indexed (9 = Oct)
 
-    let [hStr, mStr] = time.split(":");
+    let [hStr, mStr, sStr] = time.split(":");
     let h = parseInt(hStr || "0", 10);
     const m = parseInt(mStr || "0", 10);
+    const s = parseInt(sStr || "0", 10);
 
     if (format === "12h") {
       if (period === "PM" && h !== 12) h += 12;
       if (period === "AM" && h === 12) h = 0;
     }
 
-    date.setHours(h, m, 0, 0);
+    date.setHours(h, m, s, 0);
     await onConfirm(date);
   };
 
@@ -219,23 +222,19 @@ export function SchedulePostModal({
                   <span className="text-slate-900 dark:text-slate-200 text-sm font-medium">
                     Time
                   </span>
-                  <button
-                    onClick={toggleFormat}
-                    className="text-[10px] uppercase font-bold text-primary hover:underline"
-                  >
-                    Switch to {format === "12h" ? "24H" : "12H"}
-                  </button>
                 </div>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 min-w-[120px]">
                     <input
                       className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white h-11 px-3 focus:ring-2 focus:ring-primary focus:border-primary border outline-none transition-all font-mono"
                       type="text"
-                      placeholder={format === "12h" ? "10:00" : "22:00"}
+                      placeholder={format === "12h" ? "10:00:00" : "22:00:00"}
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
                     />
                   </div>
+
+                  {/* AM/PM Switcher */}
                   {format === "12h" && (
                     <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden shrink-0">
                       <button
@@ -252,7 +251,7 @@ export function SchedulePostModal({
                       <button
                         onClick={() => setPeriod("PM")}
                         className={cn(
-                          "px-3 h-full text-sm font-bold transition-colors",
+                          "px-3 h-full text-sm font-bold transition-colors border-l border-slate-300 dark:border-slate-600",
                           period === "PM"
                             ? "bg-primary text-white"
                             : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
@@ -262,6 +261,36 @@ export function SchedulePostModal({
                       </button>
                     </div>
                   )}
+
+                  {/* 12h/24h Toggle */}
+                  <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden shrink-0">
+                    <button
+                      onClick={() => {
+                        if (format !== "12h") toggleFormat();
+                      }}
+                      className={cn(
+                        "px-3 h-full text-sm font-bold transition-colors",
+                        format === "12h"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      )}
+                    >
+                      12H
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (format !== "24h") toggleFormat();
+                      }}
+                      className={cn(
+                        "px-3 h-full text-sm font-bold transition-colors border-l border-slate-300 dark:border-slate-600",
+                        format === "24h"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      )}
+                    >
+                      24H
+                    </button>
+                  </div>
                 </div>
               </label>
               {/* Time Zone selection removed */}
