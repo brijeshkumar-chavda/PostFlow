@@ -59,7 +59,7 @@ public class Post
     
     public string? AiContextSource { get; set; }
 
-    public User User { get; set; } = null!;
+    public User? User { get; set; }
     public List<PostTarget> PostTargets { get; set; } = new();
     public List<MediaAsset> MediaAssets { get; set; } = new();
 }

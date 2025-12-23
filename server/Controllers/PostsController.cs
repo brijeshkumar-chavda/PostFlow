@@ -33,6 +33,6 @@ public class PostsController : ControllerBase
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetPosts), new { id = post.Id }, post);
+        return Ok(post);
     }
 }

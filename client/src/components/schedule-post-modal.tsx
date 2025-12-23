@@ -30,7 +30,64 @@ export function SchedulePostModal({
   onClose,
   selectedPreviewMedia,
   postContent,
-}: SchedulePostModalProps) {
+  onConfirm,
+  isSubmitting = false,
+}: SchedulePostModalProps & {
+  onConfirm?: (date: Date) => Promise<void>;
+  isSubmitting?: boolean;
+}) {
+  const [time, setTime] = React.useState("10:00");
+  const [format, setFormat] = React.useState<"12h" | "24h">("24h");
+  const [period, setPeriod] = React.useState<"AM" | "PM">("AM");
+
+  // Handle format toggle with conversion
+  const toggleFormat = () => {
+    if (format === "24h") {
+      // Convert 24h to 12h
+      const [vp, mp] = time.split(":");
+      let h = parseInt(vp || "0", 10);
+      const m = mp || "00";
+      const p = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      setTime(`${h}:${m}`);
+      setPeriod(p);
+      setFormat("12h");
+    } else {
+      // Convert 12h to 24h
+      const [vp, mp] = time.split(":");
+      let h = parseInt(vp || "0", 10);
+      const m = mp || "00";
+      if (period === "PM" && h !== 12) h += 12;
+      if (period === "AM" && h === 12) h = 0;
+      setTime(`${h.toString().padStart(2, "0")}:${m}`);
+      setFormat("24h");
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!onConfirm) {
+      onClose();
+      alert("Post scheduled! (Mock)");
+      return;
+    }
+
+    // Construct Date object (Using static October 5th, 2023 for now per design)
+    // In a real app, use selected Date from calendar
+    const date = new Date(2023, 9, 5); // Month is 0-indexed (9 = Oct)
+
+    let [hStr, mStr] = time.split(":");
+    let h = parseInt(hStr || "0", 10);
+    const m = parseInt(mStr || "0", 10);
+
+    if (format === "12h") {
+      if (period === "PM" && h !== 12) h += 12;
+      if (period === "AM" && h === 12) h = 0;
+    }
+
+    date.setHours(h, m, 0, 0);
+    await onConfirm(date);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -158,15 +215,53 @@ export function SchedulePostModal({
             {/* Time Inputs */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="flex flex-col gap-1.5">
-                <span className="text-slate-900 dark:text-slate-200 text-sm font-medium">
-                  Time
-                </span>
-                <div className="relative">
-                  <input
-                    className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white h-11 px-3 focus:ring-2 focus:ring-primary focus:border-primary border outline-none transition-all"
-                    type="time"
-                    defaultValue="10:00"
-                  />
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-900 dark:text-slate-200 text-sm font-medium">
+                    Time
+                  </span>
+                  <button
+                    onClick={toggleFormat}
+                    className="text-[10px] uppercase font-bold text-primary hover:underline"
+                  >
+                    Switch to {format === "12h" ? "24H" : "12H"}
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      className="w-full rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white h-11 px-3 focus:ring-2 focus:ring-primary focus:border-primary border outline-none transition-all font-mono"
+                      type="text"
+                      placeholder={format === "12h" ? "10:00" : "22:00"}
+                      value={time}
+                      onChange={(e) => setTime(e.target.value)}
+                    />
+                  </div>
+                  {format === "12h" && (
+                    <div className="flex rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 overflow-hidden shrink-0">
+                      <button
+                        onClick={() => setPeriod("AM")}
+                        className={cn(
+                          "px-3 h-full text-sm font-bold transition-colors",
+                          period === "AM"
+                            ? "bg-primary text-white"
+                            : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        )}
+                      >
+                        AM
+                      </button>
+                      <button
+                        onClick={() => setPeriod("PM")}
+                        className={cn(
+                          "px-3 h-full text-sm font-bold transition-colors",
+                          period === "PM"
+                            ? "bg-primary text-white"
+                            : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700"
+                        )}
+                      >
+                        PM
+                      </button>
+                    </div>
+                  )}
                 </div>
               </label>
               <label className="flex flex-col gap-1.5">
@@ -206,20 +301,24 @@ export function SchedulePostModal({
             <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700 mt-auto">
               <button
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // In future this would save
-                  onClose();
-                  alert("Post scheduled!");
-                }}
-                className="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium shadow-md shadow-primary/20 transition-all flex items-center gap-2"
+                onClick={handleConfirm}
+                disabled={isSubmitting}
+                className="px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-white font-medium shadow-md shadow-primary/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Calendar className="h-5 w-5" />
-                Confirm Schedule
+                {isSubmitting ? (
+                  "Scheduling..."
+                ) : (
+                  <>
+                    <Calendar className="h-5 w-5" />
+                    Confirm Schedule
+                  </>
+                )}
               </button>
             </div>
           </div>
