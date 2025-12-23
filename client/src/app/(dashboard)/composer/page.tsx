@@ -552,13 +552,7 @@ export default function ComposerPage() {
               <span className="truncate">Schedule Post</span>
               <Calendar className="h-4 w-4 ml-2" />
             </button>
-            <div
-              className="bg-center bg-no-repeat bg-cover rounded-full size-9 ring-2 ring-gray-200 dark:ring-[#1e293b]"
-              style={{
-                backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCbxQikr-McggRSefUcmUC_uk5vwIgJ-eDL9HD-h9LG5sWgTST2EClfPe_aUxYtV8LHfKgFMWyAeQJMWvz618Bdw4BA6uIvND2y_WNb4EXEFL7HwxQDgfKtwSqzSAMpF534U-Q1LDJ5gFAyx0ZDqxZ_2GOnePSKPzUyIzYS7eNfypiywLLM_iJ-KlasFdHy7PU2O6pMmjXtxcxLBY2nBs5l6P234xlzEx80wS3QJ4JC9--TRv8CWtBXiDMNFstiCoqe")',
-              }}
-            ></div>
+            {/* User icon removed */}
           </div>
         </div>
       </header>
@@ -802,7 +796,7 @@ export default function ComposerPage() {
         <aside className="hidden xl:flex w-[480px] bg-gray-100 dark:bg-[#0b0d14] flex-col shrink-0 border-l border-gray-200 dark:border-[#1e293b]">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1e293b] min-h-[60px]">
             <h2 className="text-sm font-semibold text-slate-700 dark:text-gray-300">
-              Preview
+              Demo Preview
             </h2>
           </div>
 
