@@ -24,9 +24,6 @@
     - add functionality to crop the image
     - add functionality to re-generate the image
     - add generating progess-bar
-- Generate the
-
-in the calender page add the functionality to see the scheduled post and add the post image, title of the post and time. so user get visual feedback that what post in going to live on which date.
 
 update the queue also respect to the post schedule.
 
