@@ -40,6 +40,55 @@ export function SchedulePostModal({
   const [format, setFormat] = React.useState<"12h" | "24h">("24h");
   const [period, setPeriod] = React.useState<"AM" | "PM">("AM");
 
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+  // Default selected date to tomorrow
+  const [selectedDate, setSelectedDate] = React.useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d;
+  });
+
+  const getDaysInMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  };
+
+  const getFirstDayOfMonth = (date: Date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  };
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
+  };
+
+  // Generate calendar grid
+  const daysInMonth = getDaysInMonth(currentMonth);
+  const firstDay = getFirstDayOfMonth(currentMonth);
+  const days = [];
+
+  // Empty slots for previous month
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null);
+  }
+
+  // Days of current month
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  // Format month name
+  const monthName = currentMonth.toLocaleString("default", {
+    month: "long",
+    year: "numeric",
+  });
+
   // Handle format toggle with conversion
   const toggleFormat = () => {
     if (format === "24h") {
@@ -73,9 +122,8 @@ export function SchedulePostModal({
       return;
     }
 
-    // Construct Date object (Using static October 5th, 2023 for now per design)
-    // In a real app, use selected Date from calendar
-    const date = new Date(2023, 9, 5); // Month is 0-indexed (9 = Oct)
+    // Use selectedDate for the base date
+    const date = new Date(selectedDate);
 
     let [hStr, mStr, sStr] = time.split(":");
     let h = parseInt(hStr || "0", 10);
@@ -121,13 +169,19 @@ export function SchedulePostModal({
             <div className="max-w-[400px] mx-auto">
               {/* Calendar Header */}
               <div className="flex items-center justify-between mb-6 px-2">
-                <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-900 dark:text-white">
+                <button
+                  onClick={handlePrevMonth}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-900 dark:text-white"
+                >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <p className="text-slate-900 dark:text-white text-base font-bold">
-                  October 2023
+                  {monthName}
                 </p>
-                <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-900 dark:text-white">
+                <button
+                  onClick={handleNextMonth}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors text-slate-900 dark:text-white"
+                >
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
@@ -144,23 +198,35 @@ export function SchedulePostModal({
                   </div>
                 ))}
 
-                {/* Empty slots for previous month */}
-                <div className="h-10 w-full"></div>
-                <div className="h-10 w-full"></div>
-                <div className="h-10 w-full"></div>
+                {/* Days Map */}
+                {days.map((day, i) => {
+                  if (!day) return <div key={i} className="h-10 w-full"></div>;
 
-                {/* Days 1-31 (Static simulation as per design) */}
-                {[...Array(30)].map((_, i) => {
-                  const day = i + 1;
-                  const isSelected = day === 5;
+                  // Check if this day is selected
+                  const isSelected =
+                    selectedDate.getDate() === day &&
+                    selectedDate.getMonth() === currentMonth.getMonth() &&
+                    selectedDate.getFullYear() === currentMonth.getFullYear();
+
+                  const isToday =
+                    new Date().getDate() === day &&
+                    new Date().getMonth() === currentMonth.getMonth() &&
+                    new Date().getFullYear() === currentMonth.getFullYear();
 
                   return (
                     <button
-                      key={day}
+                      key={i}
+                      onClick={() => {
+                        const newDate = new Date(currentMonth);
+                        newDate.setDate(day);
+                        setSelectedDate(newDate);
+                      }}
                       className={cn(
                         "h-10 w-full flex items-center justify-center text-sm font-medium rounded-full transition-all",
                         isSelected
                           ? "bg-primary text-white font-bold shadow-md shadow-primary/30"
+                          : isToday
+                          ? "bg-slate-100 dark:bg-slate-800 text-primary font-bold border border-primary/20"
                           : "text-slate-900 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                       )}
                     >

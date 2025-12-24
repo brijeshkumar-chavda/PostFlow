@@ -26,4 +26,8 @@
     - add generating progess-bar
 - Generate the
 
-how many numbers of image can be uploaded on linkedin and on instagram
+in the calender page add the functionality to see the scheduled post and add the post image, title of the post and time. so user get visual feedback that what post in going to live on which date.
+
+update the queue also respect to the post schedule.
+
+move the time type section in the schedule post menu to the settings page and take the time format according to the user system time format by default. if the user want to change the time format then he can change it in the settings page.
