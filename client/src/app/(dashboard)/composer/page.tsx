@@ -47,10 +47,12 @@ import { useTheme } from "next-themes";
 import { MediaThumbnail } from "@/components/media-thumbnail";
 import { MediaPreviewModal } from "@/components/media-preview-modal";
 import { SchedulePostModal } from "@/components/schedule-post-modal";
+import { useToast } from "@/components/ui/toast";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false });
 
 export default function ComposerPage() {
+  const { toast } = useToast();
   const { resolvedTheme } = useTheme();
   const [platform, setPlatform] = useState("all");
   const [previewPlatform, setPreviewPlatform] = useState<
@@ -217,11 +219,14 @@ export default function ComposerPage() {
       setGeneratedFilePreviewUrl(URL.createObjectURL(blob));
     } catch (error: any) {
       console.error("Failed to generate media:", error);
-      alert(
-        `Generation Failed: ${
-          error.message || "Unknown error"
-        }. Please check your API configuration.`
-      );
+      console.error("Failed to generate media:", error);
+      toast({
+        title: "Generation Failed",
+        description:
+          error.message ||
+          "Unknown error. Please check your API configuration.",
+        type: "error",
+      });
     } finally {
       setIsGeneratingMedia(false);
     }
@@ -230,9 +235,15 @@ export default function ComposerPage() {
   const handleGeneratePromptFromContext = async () => {
     const editorText = editor?.getText() || "";
     if (!editorText.trim()) {
-      alert(
-        "Please write some text in your post first to generate a contextual image."
-      );
+      if (!editorText.trim()) {
+        toast({
+          title: "No Content Found",
+          description:
+            "Please write some text in your post first to generate a contextual image.",
+          type: "warning",
+        });
+        return;
+      }
       return;
     }
 
@@ -252,9 +263,12 @@ export default function ComposerPage() {
       setMediaPrompt(data.content);
     } catch (error: any) {
       console.error("Failed to extract context:", error);
-      alert(
-        "Failed to analyze post context. Please try entering a description manually."
-      );
+      toast({
+        title: "Context Extraction Failed",
+        description:
+          "Failed to analyze post context. Please try entering a description manually.",
+        type: "error",
+      });
     } finally {
       setIsExtractingContext(false);
     }
@@ -429,7 +443,14 @@ export default function ComposerPage() {
   const handleSchedulePost = async (scheduledDate: Date) => {
     // 1. Validate content or media
     if (!content.trim() && mediaFiles.length === 0) {
-      alert("Please add some content or media to schedule a post.");
+      if (!content.trim() && mediaFiles.length === 0) {
+        toast({
+          title: "Empty Post",
+          description: "Please add some content or media to schedule a post.",
+          type: "warning",
+        });
+        return;
+      }
       return;
     }
 
@@ -535,7 +556,11 @@ export default function ComposerPage() {
 
       if (!resPost.ok) throw new Error("Failed to create post");
 
-      alert("Post scheduled successfully!");
+      toast({
+        title: "Post Scheduled!",
+        description: `Your post for ${scheduledDate.toLocaleDateString()} has been scheduled successfully.`,
+        type: "success",
+      });
       setIsScheduleModalOpen(false);
       // Reset state
       setContent("");
@@ -543,7 +568,12 @@ export default function ComposerPage() {
       setPreviewUrls([]);
     } catch (error: any) {
       console.error("Scheduling Failed:", error);
-      alert("Failed to schedule post: " + error.message);
+      console.error("Scheduling Failed:", error);
+      toast({
+        title: "Scheduling Failed",
+        description: error.message || "Something went wrong.",
+        type: "error",
+      });
     } finally {
       setIsScheduling(false);
     }
@@ -555,17 +585,23 @@ export default function ComposerPage() {
       const remainingSlots = 20 - mediaFiles.length;
 
       if (remainingSlots <= 0) {
-        alert("You have reached the maximum limit of 20 media files.");
+        toast({
+          title: "Limit Reached",
+          description: "You have reached the maximum limit of 20 media files.",
+          type: "warning",
+        });
         e.target.value = ""; // Reset the value even if no files are added
         return;
       }
 
       if (newFiles.length > remainingSlots) {
-        alert(
-          `You can only add ${remainingSlots} more file${
+        toast({
+          title: "Partial Upload",
+          description: `You can only add ${remainingSlots} more file${
             remainingSlots === 1 ? "" : "s"
-          }. The rest were ignored.`
-        );
+          }. The rest were ignored.`,
+          type: "warning",
+        });
         setMediaFiles((prev) => [
           ...prev,
           ...newFiles.slice(0, remainingSlots),
@@ -605,16 +641,22 @@ export default function ComposerPage() {
       const remainingSlots = 20 - mediaFiles.length;
 
       if (remainingSlots <= 0) {
-        alert("You have reached the maximum limit of 20 media files.");
+        toast({
+          title: "Limit Reached",
+          description: "You have reached the maximum limit of 20 media files.",
+          type: "warning",
+        });
         return;
       }
 
       if (newFiles.length > remainingSlots) {
-        alert(
-          `You can only add ${remainingSlots} more file${
+        toast({
+          title: "Partial Upload",
+          description: `You can only add ${remainingSlots} more file${
             remainingSlots === 1 ? "" : "s"
-          }. The rest were ignored.`
-        );
+          }. The rest were ignored.`,
+          type: "warning",
+        });
         setMediaFiles((prev) => [
           ...prev,
           ...newFiles.slice(0, remainingSlots),
