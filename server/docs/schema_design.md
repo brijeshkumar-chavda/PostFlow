@@ -78,19 +78,6 @@ Stores images and videos used in posts.
 | `size_bytes`   | INT                    | File size                                |
 | `created_at`   | TIMESTAMP              | Upload time                              |
 
-### 6. Analytics
-
-Stores performance metrics for published posts.
-
-| Column           | Type                 | Description                         |
-| :--------------- | :------------------- | :---------------------------------- |
-| `id`             | UUID / INT           | Primary Key                         |
-| `post_target_id` | FK -> PostTargets.id | The usage of the post being tracked |
-| `impressions`    | INT                  | View count                          |
-| `likes`          | INT                  | Like count                          |
-| `comments`       | INT                  | Comment count                       |
-| `shares`         | INT                  | Share/Repost count                  |
-| `fetched_at`     | TIMESTAMP            | When this data was last updated     |
 
 ### 7. UserUsage
 
@@ -110,4 +97,4 @@ Tracks AI usage quotas for users.
 - A **User** has many **Posts**.
 - A **Post** has many **PostTargets** (one for each platform selected).
 - A **Post** has many **MediaAssets**.
-- A **PostTarget** has many **Analytics** entries (historical data) or one current entry.
+

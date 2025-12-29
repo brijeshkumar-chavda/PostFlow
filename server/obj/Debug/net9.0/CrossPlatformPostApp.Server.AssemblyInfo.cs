@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CrossPlatformPostApp.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+327be75a65038713154ae67711629378480517da")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dd34c9daccd13e91b86e19723c7f75a3881dec83")]
 [assembly: System.Reflection.AssemblyProductAttribute("CrossPlatformPostApp.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CrossPlatformPostApp.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

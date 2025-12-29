@@ -68,17 +68,7 @@ CREATE TABLE MediaAssets (
     FOREIGN KEY (PostId) REFERENCES Posts(Id) ON DELETE SET NULL
 );
 
--- 6. Analytics Table
-CREATE TABLE Analytics (
-    Id INT IDENTITY(1,1) PRIMARY KEY,
-    PostTargetId INT NOT NULL,
-    Impressions INT DEFAULT 0,
-    Likes INT DEFAULT 0,
-    Comments INT DEFAULT 0,
-    Shares INT DEFAULT 0,
-    FetchedAt DATETIME2 DEFAULT GETDATE(),
-    FOREIGN KEY (PostTargetId) REFERENCES PostTargets(Id) ON DELETE CASCADE
-);
+
 
 -- Indexes for performance
 CREATE INDEX IX_SocialAccounts_UserId ON SocialAccounts(UserId);

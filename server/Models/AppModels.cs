@@ -99,23 +99,10 @@ public class PostTarget
 
     public Post Post { get; set; } = null!;
     public SocialAccount SocialAccount { get; set; } = null!;
-    public List<Analytics> Analytics { get; set; } = new();
+
 }
 
-public class Analytics
-{
-    public int Id { get; set; }
-    public int PostTargetId { get; set; }
-    
-    public int Impressions { get; set; }
-    public int Likes { get; set; }
-    public int Comments { get; set; }
-    public int Shares { get; set; }
-    
-    public DateTime FetchedAt { get; set; } = DateTime.UtcNow;
 
-    public PostTarget PostTarget { get; set; } = null!;
-}
 
 public class UserUsage
 {

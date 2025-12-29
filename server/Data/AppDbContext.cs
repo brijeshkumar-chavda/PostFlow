@@ -12,7 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Post> Posts { get; set; }
     public DbSet<MediaAsset> MediaAssets { get; set; }
     public DbSet<PostTarget> PostTargets { get; set; }
-    public DbSet<Analytics> Analytics { get; set; }
+
     public DbSet<UserUsage> UserUsages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

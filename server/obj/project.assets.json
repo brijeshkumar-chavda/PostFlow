@@ -2887,11 +2887,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/home/brijesh/Documents/projects/CrossPlatformPostApp/server/CrossPlatformPostApp.Server.csproj",
+      "projectUniqueName": "/home/brijesh/Documents/projects/PostFlow/server/CrossPlatformPostApp.Server.csproj",
       "projectName": "CrossPlatformPostApp.Server",
-      "projectPath": "/home/brijesh/Documents/projects/CrossPlatformPostApp/server/CrossPlatformPostApp.Server.csproj",
+      "projectPath": "/home/brijesh/Documents/projects/PostFlow/server/CrossPlatformPostApp.Server.csproj",
       "packagesPath": "/home/brijesh/.nuget/packages/",
-      "outputPath": "/home/brijesh/Documents/projects/CrossPlatformPostApp/server/obj/",
+      "outputPath": "/home/brijesh/Documents/projects/PostFlow/server/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/home/brijesh/.nuget/NuGet/NuGet.Config"

@@ -1,21 +1,20 @@
 "use client";
 
-import {
-  LayoutDashboard,
-  FileEdit,
-  Calendar,
-  BarChart,
-  Users,
-  Settings,
-  PlusCircle,
-  Menu,
-  X,
-  LogOut,
-} from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
+import {
+  Calendar,
+  FileEdit,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PlusCircle,
+  Settings,
+  Users,
+  X,
+} from "lucide-react";
 import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function DashboardLayout({
   children,
@@ -35,7 +34,6 @@ export default function DashboardLayout({
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Composer", href: "/composer", icon: FileEdit },
     { name: "Calendar", href: "/calendar", icon: Calendar },
-    { name: "Analytics", href: "/analytics", icon: BarChart },
     { name: "Accounts", href: "/accounts", icon: Users },
     { name: "Settings", href: "/settings", icon: Settings },
   ];

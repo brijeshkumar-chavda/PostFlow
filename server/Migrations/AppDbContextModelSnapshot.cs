@@ -22,38 +22,7 @@ namespace CrossPlatformPostApp.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("CrossPlatformPostApp.Server.Models.Analytics", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Comments")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("FetchedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Impressions")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Likes")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("PostTargetId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Shares")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostTargetId");
-
-                    b.ToTable("Analytics");
-                });
 
             modelBuilder.Entity("CrossPlatformPostApp.Server.Models.MediaAsset", b =>
                 {
@@ -275,16 +244,7 @@ namespace CrossPlatformPostApp.Server.Migrations
                     b.ToTable("UserUsages");
                 });
 
-            modelBuilder.Entity("CrossPlatformPostApp.Server.Models.Analytics", b =>
-                {
-                    b.HasOne("CrossPlatformPostApp.Server.Models.PostTarget", "PostTarget")
-                        .WithMany("Analytics")
-                        .HasForeignKey("PostTargetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
-                    b.Navigation("PostTarget");
-                });
 
             modelBuilder.Entity("CrossPlatformPostApp.Server.Models.MediaAsset", b =>
                 {
@@ -363,10 +323,7 @@ namespace CrossPlatformPostApp.Server.Migrations
                     b.Navigation("PostTargets");
                 });
 
-            modelBuilder.Entity("CrossPlatformPostApp.Server.Models.PostTarget", b =>
-                {
-                    b.Navigation("Analytics");
-                });
+
 
             modelBuilder.Entity("CrossPlatformPostApp.Server.Models.SocialAccount", b =>
                 {
